@@ -1,7 +1,55 @@
-﻿using KayanHRAttendanceService.WindowsService.Services.IServices;
+﻿using KayanHRAttendanceService.WindowsService.Entities;
+using KayanHRAttendanceService.WindowsService.Services.IServices;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 
-namespace KayanHRAttendanceService.WindowsService.Services;
-
-public class HttpService : IHttpService
+namespace KayanHRAttendanceService.WindowsService.Services
 {
+    public class HttpService : IHttpService
+    {
+        private readonly HttpClient _httpClient;
+
+        public HttpService(IHttpClientFactory httpClientFactory)
+        {
+            _httpClient = httpClientFactory.CreateClient();
+        }
+
+        public async Task<T> SendAsync<T>(APIRequest apiRequest, bool withBearer = true)
+        {
+            using var requestMessage = new HttpRequestMessage(apiRequest.Method, apiRequest.Url);
+
+            if (apiRequest.Body != null)
+            {
+                var json = JsonSerializer.Serialize(apiRequest.Body);
+                requestMessage.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            }
+
+            foreach (var header in apiRequest.Headers)
+            {
+                requestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+
+            if (withBearer)
+            {
+                var token = GetToken();
+                if (!string.IsNullOrEmpty(token))
+                {
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                }
+            }
+
+            var response = await _httpClient.SendAsync(requestMessage);
+            response.EnsureSuccessStatusCode();
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<T>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+
+        private string GetToken()
+        {
+            return "your-access-token";
+        }
+    }
 }
