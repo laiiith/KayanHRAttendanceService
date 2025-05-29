@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using KayanHRAttendanceService.WindowsService.Services.IServices;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace KayanHRAttendanceService.WindowsService.Worker
