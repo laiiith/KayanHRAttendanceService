@@ -71,7 +71,7 @@ namespace KayanHRAttendanceService.WindowsService
                             throw new InvalidOperationException("Unsupported integration type");
                     }
 
-                    services.AddSingleton<IDatabaseService, AttendanceFetcherService>();
+                    services.AddSingleton<IAttendanceFetcherService, AttendanceFetcherService>();
                     services.AddSingleton<IHttpService, HttpService>();
                     services.AddHttpClient();
                     services.AddHostedService<AttendanceWorker>();
