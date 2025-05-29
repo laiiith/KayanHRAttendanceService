@@ -6,14 +6,10 @@ using System.Text.Json;
 
 namespace KayanHRAttendanceService.WindowsService.Services
 {
-    public class HttpService : IHttpService
+    public class HttpService(IHttpClientFactory httpClientFactory) : IHttpService
     {
-        private readonly HttpClient _httpClient;
+        private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
 
-        public HttpService(IHttpClientFactory httpClientFactory)
-        {
-            _httpClient = httpClientFactory.CreateClient();
-        }
 
         public async Task<T> SendAsync<T>(APIRequest apiRequest, bool withBearer = true)
         {

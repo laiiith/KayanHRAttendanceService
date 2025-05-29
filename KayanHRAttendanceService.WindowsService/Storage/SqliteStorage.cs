@@ -7,6 +7,15 @@ public class SqliteStorage : ISqliteStorage
 {
     private readonly string _connectionString = "Data Source=SqlLiteLocalDb/Attendance.db";
 
+    private SqliteStorage() { }
+
+    public static async Task<SqliteStorage> CreateSqliteStorageAsync()
+    {
+        var storage = new SqliteStorage();
+        await storage.InitializeDatabaseAsync();
+        return storage;
+    }
+
     public async Task InitializeDatabaseAsync(CancellationToken cancellationToken = default)
     {
         if (!Directory.Exists("SqlLiteLocalDb"))
