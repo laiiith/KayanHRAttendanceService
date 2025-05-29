@@ -2,6 +2,5 @@
 
 public interface IAttendanceConnector
 {
-    //void RunService();
-    //void FetchAttendance();
+    Task<List<KayanHRAttendanceService.WindowsService.Storage.Models.AttendanceRecord>> FetchAttendanceAsync();
 }
