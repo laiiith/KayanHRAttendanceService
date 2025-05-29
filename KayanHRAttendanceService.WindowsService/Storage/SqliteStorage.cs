@@ -25,19 +25,7 @@ public class SqliteStorage : ISqliteStorage
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
-
-    public async Task PushDataAsync(string message, DateTime createdAt, CancellationToken cancellationToken = default)
-    {
-        using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken);
-
-        var command = connection.CreateCommand();
-        command.CommandText = "INSERT INTO AttendanceData(ID,EmployeeCode,PunchTime,Function,Machine,Status,TId)";
-
-        await command.ExecuteNonQueryAsync(cancellationToken);
-    }
-
-    public Task<List<AttendanceRecord>> GetDataAsync(CancellationToken cancellationToken = default)
+    public async Task<List<AttendanceRecord>> GetDataAsync(CancellationToken cancellationToken = default)
     {
         var results = new List<AttendanceRecord>();
 
@@ -53,8 +41,14 @@ public class SqliteStorage : ISqliteStorage
         return results;
     }
 
-    public Task PushDataAsync(List<AttendanceRecord> model, CancellationToken cancellationToken = default)
+    public async Task PushDataAsync(List<AttendanceRecord> model, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken);
+
+        var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO AttendanceData(ID,EmployeeCode,PunchTime,Function,Machine,Status,TId)";
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }
