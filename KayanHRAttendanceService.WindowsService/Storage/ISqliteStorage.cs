@@ -2,7 +2,7 @@
 
 public interface ISqliteStorage
 {
-    Task<List<(int Id, DateTime Time)>> GetDataAsync(CancellationToken cancellationToken = default);
-    Task PushDataAsync(string message, DateTime createdAt, CancellationToken cancellationToken = default);
+    Task<List<KayanHRAttendanceService.WindowsService.Storage.Models.AttendanceRecord>> GetDataAsync(CancellationToken cancellationToken = default);
+    Task PushDataAsync(List<KayanHRAttendanceService.WindowsService.Storage.Models.AttendanceRecord> model, CancellationToken cancellationToken = default);
     Task InitializeDatabaseAsync(CancellationToken cancellationToken = default);
 }
