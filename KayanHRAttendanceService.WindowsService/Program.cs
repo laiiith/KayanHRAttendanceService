@@ -1,5 +1,7 @@
-﻿using KayanHRAttendanceService.WindowsService.AttendanceType;
-using KayanHRAttendanceService.WindowsService.AttendanceType.IAttendanceType;
+﻿using KayanHRAttendanceService.WindowsService.AttendanceConnector;
+using KayanHRAttendanceService.WindowsService.AttendanceConnector.BioStar;
+using KayanHRAttendanceService.WindowsService.AttendanceConnector.BioTime;
+using KayanHRAttendanceService.WindowsService.AttendanceConnector.Databases;
 using KayanHRAttendanceService.WindowsService.Entities;
 using KayanHRAttendanceService.WindowsService.Services;
 using KayanHRAttendanceService.WindowsService.Services.IServices;
@@ -60,16 +62,16 @@ namespace KayanHRAttendanceService.WindowsService
 
                     switch (integrationSettings.Type)
                     {
-                        case 1: services.AddSingleton<IAttendanceType, BioStar>(); break;
-                        case 2: services.AddSingleton<IAttendanceType, BioTime>(); break;
-                        case 3: services.AddSingleton<IAttendanceType, MSSqlServer>(); break;
-                        case 4: services.AddSingleton<IAttendanceType, PostgreSQL>(); break;
-                        case 5: services.AddSingleton<IAttendanceType, MySQL>(); break;
+                        case 1: services.AddSingleton<IAttendanceConnector, BioStarConnector>(); break;
+                        case 2: services.AddSingleton<IAttendanceConnector, BioTimeConnector>(); break;
+                        case 3: services.AddSingleton<IAttendanceConnector, MSSqlServerConnector>(); break;
+                        case 4: services.AddSingleton<IAttendanceConnector, PostgreSqlConnector>(); break;
+                        case 5: services.AddSingleton<IAttendanceConnector, MySQLConnector>(); break;
                         default:
                             throw new InvalidOperationException("Unsupported integration type");
                     }
 
-                    services.AddSingleton<IDatabaseService, DatabaseService>();
+                    services.AddSingleton<IDatabaseService, AttendanceFetcherService>();
                     services.AddSingleton<IHttpService, HttpService>();
                     services.AddHttpClient();
                     services.AddHostedService<AttendanceWorker>();

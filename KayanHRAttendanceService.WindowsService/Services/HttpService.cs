@@ -19,13 +19,13 @@ namespace KayanHRAttendanceService.WindowsService.Services
         {
             using var requestMessage = new HttpRequestMessage(apiRequest.Method, apiRequest.Url);
 
-            if (apiRequest.Body != null)
+            if (apiRequest.Data != null)
             {
-                var json = JsonSerializer.Serialize(apiRequest.Body);
+                var json = JsonSerializer.Serialize(apiRequest.Data);
                 requestMessage.Content = new StringContent(json, Encoding.UTF8, "application/json");
             }
 
-            foreach (var header in apiRequest.Headers)
+            foreach (var header in apiRequest.CustomHeaders)
             {
                 requestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value);
             }

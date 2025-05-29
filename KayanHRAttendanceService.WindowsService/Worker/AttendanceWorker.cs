@@ -3,27 +3,16 @@ using Microsoft.Extensions.Logging;
 
 namespace KayanHRAttendanceService.WindowsService.Worker
 {
-    public class AttendanceWorker : BackgroundService
+    public class AttendanceWorker(ILogger<AttendanceWorker> logger) : BackgroundService
     {
-        private readonly ILogger<AttendanceWorker> _logger;
+        private readonly IAttendanceFetcherService _fetcherService;
+        private readonly IDataPusherService _pusherService;
 
-        public AttendanceWorker(ILogger<AttendanceWorker> logger)
-        {
-            _logger = logger;
-        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("AttendanceWorker started.");
+            logger.LogInformation("AttendanceWorker started.");
 
-            try
-            {
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to initialize database");
-                return;
-            }
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -32,7 +21,7 @@ namespace KayanHRAttendanceService.WindowsService.Worker
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in AttendanceWorker loop");
+                    logger.LogError(ex, "Error in AttendanceWorker loop");
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(60), stoppingToken);
