@@ -1,4 +1,4 @@
-﻿using KayanHRAttendanceService.WindowsService.Entities;
+﻿using KayanHRAttendanceService.Entities.General;
 using KayanHRAttendanceService.WindowsService.Services.IServices;
 using System.Net.Http.Headers;
 using System.Text;

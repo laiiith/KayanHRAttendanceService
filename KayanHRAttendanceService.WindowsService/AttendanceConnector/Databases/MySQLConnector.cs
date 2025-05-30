@@ -1,6 +1,4 @@
-﻿using KayanHRAttendanceService.WindowsService.Storage.Models;
-
-namespace KayanHRAttendanceService.WindowsService.AttendanceConnector.Databases;
+﻿namespace KayanHRAttendanceService.WindowsService.AttendanceConnector.Databases;
 
 public class MySQLConnector : AttendanceConnector, IAttendanceConnector
 {

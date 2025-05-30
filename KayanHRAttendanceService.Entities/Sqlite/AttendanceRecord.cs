@@ -1,4 +1,4 @@
-﻿namespace KayanHRAttendanceService.WindowsService.Storage.Models;
+﻿namespace KayanHRAttendanceService.Entities.Sqlite;
 
 public record AttendanceRecord
 {

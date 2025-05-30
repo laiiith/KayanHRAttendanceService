@@ -1,8 +1,8 @@
-﻿using KayanHRAttendanceService.WindowsService.AttendanceConnector;
+﻿using KayanHRAttendanceService.Entities.General;
+using KayanHRAttendanceService.WindowsService.AttendanceConnector;
 using KayanHRAttendanceService.WindowsService.AttendanceConnector.BioStar;
 using KayanHRAttendanceService.WindowsService.AttendanceConnector.BioTime;
 using KayanHRAttendanceService.WindowsService.AttendanceConnector.Databases;
-using KayanHRAttendanceService.WindowsService.Entities;
 using KayanHRAttendanceService.WindowsService.Services;
 using KayanHRAttendanceService.WindowsService.Services.IServices;
 using KayanHRAttendanceService.WindowsService.Worker;

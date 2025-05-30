@@ -1,4 +1,4 @@
-﻿namespace KayanHRAttendanceService.WindowsService.Entities;
+﻿namespace KayanHRAttendanceService.Entities.General;
 
 public class APIRequest
 {

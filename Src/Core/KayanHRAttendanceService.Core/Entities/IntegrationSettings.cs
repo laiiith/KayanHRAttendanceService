@@ -1,4 +1,4 @@
-﻿namespace KayanHRAttendanceService.WindowsService.Entities;
+﻿namespace KayanHRAttendanceService.Core.General;
 
 public class IntegrationSettings
 {

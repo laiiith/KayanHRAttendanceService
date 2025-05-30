@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace KayanHRAttendanceService.WindowsService.Services.IServices;
 
-namespace KayanHRAttendanceService.WindowsService.Services.IServices
+public interface IDataPusherService
 {
-    internal interface IDataPusherService
-    {
-    }
 }

@@ -9,7 +9,6 @@ namespace KayanHRAttendanceService.WindowsService.Worker
         private readonly IAttendanceFetcherService _fetcherService;
         private readonly IDataPusherService _pusherService;
 
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("AttendanceWorker started.");

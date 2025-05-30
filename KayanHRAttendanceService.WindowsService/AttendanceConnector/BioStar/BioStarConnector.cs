@@ -1,4 +1,4 @@
-﻿using KayanHRAttendanceService.WindowsService.Storage.Models;
+﻿using KayanHRAttendanceService.Entities.Sqlite;
 
 namespace KayanHRAttendanceService.WindowsService.AttendanceConnector.BioStar;
 

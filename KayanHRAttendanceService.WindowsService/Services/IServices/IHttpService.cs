@@ -1,4 +1,4 @@
-﻿using KayanHRAttendanceService.WindowsService.Entities;
+﻿using KayanHRAttendanceService.Entities.General;
 
 namespace KayanHRAttendanceService.WindowsService.Services.IServices;
 

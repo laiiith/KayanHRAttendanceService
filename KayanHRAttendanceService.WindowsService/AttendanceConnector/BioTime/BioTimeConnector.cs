@@ -1,4 +1,5 @@
-﻿using KayanHRAttendanceService.WindowsService.Services.IServices;
+﻿using KayanHRAttendanceService.Entities.Sqlite;
+using KayanHRAttendanceService.WindowsService.Services.IServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -33,9 +34,9 @@ public class BioTimeConnector : AttendanceConnector, IAttendanceConnector
             _logger.LogWarning("Invalid or missing 'Page_Size' config. Defaulting to 100.");
         }
     }
-    public async Task<List<KayanHRAttendanceService.WindowsService.Storage.Models.AttendanceRecord>> FetchAttendanceAsync()
+    public async Task<List<AttendanceRecord>> FetchAttendanceAsync()
     {
-        var punches = new List<Storage.Models.AttendanceRecord>();
+        var punches = new List<AttendanceRecord>();
         var token = await AuthenticateAsync();
 
         int page = 1;
@@ -71,7 +72,7 @@ public class BioTimeConnector : AttendanceConnector, IAttendanceConnector
     {
         var response = await _httpService.SendAsync<TokenDTO>(new Entities.APIRequest
         {
-            Method = HttpMethod.Get,
+            Method = HttpMethod.Post,
             Url = $"{_server}/jwt-api-token-auth/",
             Data = new { _username, _password }
         });
