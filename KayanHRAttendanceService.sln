@@ -3,9 +3,31 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.36105.23
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KayanHRAttendanceService.WindowsService", "KayanHRAttendanceService.WindowsService\KayanHRAttendanceService.WindowsService.csproj", "{8BF95C2F-6598-4EB9-9398-7EDA4A69D2FE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KayanHRAttendanceService.IntegrationTests", "KayanHRAttendanceService.IntegrationTests\KayanHRAttendanceService.IntegrationTests.csproj", "{0D323769-24F4-4DC3-9829-DB2229942AF0}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{43150E70-1C49-45CE-8215-603685467E22}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KayanHRAttendanceService.IntegrationTests", "Tests\KayanHRAttendanceService.IntegrationTests\KayanHRAttendanceService.IntegrationTests.csproj", "{3444411E-496A-C048-991D-346DC4B6F7FA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{0924F82B-DAFB-4FC2-8777-03BF4963A282}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{23E335D3-A9B3-4BB1-8EC1-C681B0056AE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KayanHRAttendanceService.Core", "Src\Core\KayanHRAttendanceService.Core\KayanHRAttendanceService.Core.csproj", "{695F237E-0C71-CBC0-C13A-121D4FC81F7E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{2F04DEB4-45E5-466C-8CC1-CF66A1319611}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{72177B82-FA2D-4E03-AF51-E2BB4FC41C14}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WindowsService", "WindowsService", "{772D744F-9EE5-46B6-A481-90801B8DB265}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KayanHRAttendanceService.WindowsService", "Src\WindowsService\KayanHRAttendanceService.WindowsService\KayanHRAttendanceService.WindowsService.csproj", "{566B7FEA-3B45-7AFE-3CDF-B8016D0D815D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KayanHRAttendanceService.Infrastructure", "Src\Infrastructure\KayanHRAttendanceService.Infrastructure\KayanHRAttendanceService.Infrastructure.csproj", "{ED543C34-B46C-43B4-9CEF-EA2734954991}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KayanHRAttendanceService.Application", "Src\Application\KayanHRAttendanceService.Application\KayanHRAttendanceService.Application.csproj", "{8C34507F-EDC6-47B1-8995-C1F19C57DCEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KayanHRAttendanceService.Domain", "Src\Domain\KayanHRAttendanceService.Domain\KayanHRAttendanceService.Domain.csproj", "{E02B716F-722C-46FF-B6C8-7A9EB07D544F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,17 +35,46 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8BF95C2F-6598-4EB9-9398-7EDA4A69D2FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8BF95C2F-6598-4EB9-9398-7EDA4A69D2FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8BF95C2F-6598-4EB9-9398-7EDA4A69D2FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8BF95C2F-6598-4EB9-9398-7EDA4A69D2FE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0D323769-24F4-4DC3-9829-DB2229942AF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0D323769-24F4-4DC3-9829-DB2229942AF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0D323769-24F4-4DC3-9829-DB2229942AF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0D323769-24F4-4DC3-9829-DB2229942AF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3444411E-496A-C048-991D-346DC4B6F7FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3444411E-496A-C048-991D-346DC4B6F7FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3444411E-496A-C048-991D-346DC4B6F7FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3444411E-496A-C048-991D-346DC4B6F7FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{695F237E-0C71-CBC0-C13A-121D4FC81F7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{695F237E-0C71-CBC0-C13A-121D4FC81F7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{695F237E-0C71-CBC0-C13A-121D4FC81F7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{695F237E-0C71-CBC0-C13A-121D4FC81F7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{566B7FEA-3B45-7AFE-3CDF-B8016D0D815D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{566B7FEA-3B45-7AFE-3CDF-B8016D0D815D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{566B7FEA-3B45-7AFE-3CDF-B8016D0D815D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{566B7FEA-3B45-7AFE-3CDF-B8016D0D815D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED543C34-B46C-43B4-9CEF-EA2734954991}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED543C34-B46C-43B4-9CEF-EA2734954991}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED543C34-B46C-43B4-9CEF-EA2734954991}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED543C34-B46C-43B4-9CEF-EA2734954991}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C34507F-EDC6-47B1-8995-C1F19C57DCEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C34507F-EDC6-47B1-8995-C1F19C57DCEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C34507F-EDC6-47B1-8995-C1F19C57DCEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C34507F-EDC6-47B1-8995-C1F19C57DCEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E02B716F-722C-46FF-B6C8-7A9EB07D544F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E02B716F-722C-46FF-B6C8-7A9EB07D544F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E02B716F-722C-46FF-B6C8-7A9EB07D544F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E02B716F-722C-46FF-B6C8-7A9EB07D544F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3444411E-496A-C048-991D-346DC4B6F7FA} = {43150E70-1C49-45CE-8215-603685467E22}
+		{0924F82B-DAFB-4FC2-8777-03BF4963A282} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{23E335D3-A9B3-4BB1-8EC1-C681B0056AE9} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{695F237E-0C71-CBC0-C13A-121D4FC81F7E} = {23E335D3-A9B3-4BB1-8EC1-C681B0056AE9}
+		{2F04DEB4-45E5-466C-8CC1-CF66A1319611} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{72177B82-FA2D-4E03-AF51-E2BB4FC41C14} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{772D744F-9EE5-46B6-A481-90801B8DB265} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{566B7FEA-3B45-7AFE-3CDF-B8016D0D815D} = {772D744F-9EE5-46B6-A481-90801B8DB265}
+		{ED543C34-B46C-43B4-9CEF-EA2734954991} = {72177B82-FA2D-4E03-AF51-E2BB4FC41C14}
+		{8C34507F-EDC6-47B1-8995-C1F19C57DCEB} = {0924F82B-DAFB-4FC2-8777-03BF4963A282}
+		{E02B716F-722C-46FF-B6C8-7A9EB07D544F} = {2F04DEB4-45E5-466C-8CC1-CF66A1319611}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {43279CE6-0B25-493D-846D-5E0E128DBF73}
