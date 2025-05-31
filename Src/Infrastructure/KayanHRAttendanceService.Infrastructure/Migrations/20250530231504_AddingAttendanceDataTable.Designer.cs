@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace KayanHRAttendanceService.Infrastructure.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(ApplicationDbContext.ApplicationDbContext))]
     [Migration("20250530231504_AddingAttendanceDataTable")]
     partial class AddingAttendanceDataTable
     {
