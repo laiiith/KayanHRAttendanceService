@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace KayanHRAttendanceService.Infrastructure.Migrations
+namespace KayanHRAttendanceService.Infrastructure.ApplicationDbContext.Migrations
 {
     /// <inheritdoc />
-    public partial class AddingAttendanceDataTable : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,13 +16,13 @@ namespace KayanHRAttendanceService.Infrastructure.Migrations
                 {
                     ID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    EmployeeCode = table.Column<string>(type: "TEXT", nullable: true),
-                    PunchTime = table.Column<string>(type: "TEXT", nullable: true),
-                    Function = table.Column<string>(type: "TEXT", nullable: true),
-                    MachineName = table.Column<string>(type: "TEXT", nullable: true),
-                    MachineSerialNo = table.Column<string>(type: "TEXT", nullable: true),
-                    Status = table.Column<string>(type: "TEXT", nullable: true),
-                    TId = table.Column<string>(type: "TEXT", nullable: true)
+                    EmployeeCode = table.Column<string>(type: "TEXT", nullable: false),
+                    PunchTime = table.Column<string>(type: "TEXT", nullable: false),
+                    Function = table.Column<string>(type: "TEXT", nullable: false),
+                    MachineName = table.Column<string>(type: "TEXT", nullable: false),
+                    MachineSerialNo = table.Column<string>(type: "TEXT", nullable: false),
+                    Status = table.Column<string>(type: "TEXT", nullable: false),
+                    TId = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

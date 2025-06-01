@@ -4,10 +4,9 @@ using Microsoft.Extensions.Logging;
 
 namespace KayanHRAttendanceService.WindowsService.Worker
 {
-    public class AttendanceWorker(IHttpClientFactory f, ILogger<AttendanceWorker> logger) : BackgroundService
+    public class AttendanceWorker(ILogger<AttendanceWorker> logger) : BackgroundService
     {
-        private readonly IAttendanceFetcherService _fetcherService;
-        private readonly IDataPusherService _pusherService;
+        private readonly ISyncAttendanceData attendanceData;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {

@@ -1,7 +1,10 @@
-﻿namespace KayanHRAttendanceService.Domain.Entities.Sqlite;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace KayanHRAttendanceService.Domain.Entities.Sqlite;
 
 public record AttendanceRecord
 {
+    [Key]
     public int ID { get; set; }
     public string EmployeeCode { get; set; }
     public string PunchTime { get; set; }
