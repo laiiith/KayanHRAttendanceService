@@ -52,53 +52,7 @@ namespace KayanHRAttendanceService.Infrastructure.ApplicationDbContext.Migration
 
                     b.HasKey("ID");
 
-                    b.ToTable("AttendanceData");
-
-                    b.HasData(
-                        new
-                        {
-                            ID = 1,
-                            EmployeeCode = "EMP001",
-                            Function = "IN",
-                            MachineName = "MainGate",
-                            MachineSerialNo = "SN001",
-                            PunchTime = "2025-06-01 08:00:00",
-                            Status = "Verified",
-                            TId = "T1001"
-                        },
-                        new
-                        {
-                            ID = 2,
-                            EmployeeCode = "EMP002",
-                            Function = "IN",
-                            MachineName = "SideGate",
-                            MachineSerialNo = "SN002",
-                            PunchTime = "2025-06-01 08:15:00",
-                            Status = "Verified",
-                            TId = "T1002"
-                        },
-                        new
-                        {
-                            ID = 3,
-                            EmployeeCode = "EMP001",
-                            Function = "OUT",
-                            MachineName = "MainGate",
-                            MachineSerialNo = "SN001",
-                            PunchTime = "2025-06-01 17:00:00",
-                            Status = "Verified",
-                            TId = "T1003"
-                        },
-                        new
-                        {
-                            ID = 4,
-                            EmployeeCode = "EMP002",
-                            Function = "OUT",
-                            MachineName = "SideGate",
-                            MachineSerialNo = "SN002",
-                            PunchTime = "2025-06-01 17:05:00",
-                            Status = "Verified",
-                            TId = "T1004"
-                        });
+                    b.ToTable("AttendanceData", (string)null);
                 });
 #pragma warning restore 612, 618
         }
