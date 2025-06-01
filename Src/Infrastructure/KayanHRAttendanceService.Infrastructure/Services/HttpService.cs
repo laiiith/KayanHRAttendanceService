@@ -1,16 +1,16 @@
-﻿using KayanHRAttendanceService.WindowsService.Services.IServices;
+﻿using KayanHRAttendanceService.Application.Services.Interfaces;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace KayanHRAttendanceService.WindowsService.Services
+namespace KayanHRAttendanceService.Infrastructure.Services
 {
     public class HttpService(IHttpClientFactory httpClientFactory) : IHttpService
     {
         private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
 
 
-        public async Task<T> SendAsync<T>(KayanHRAttendanceService.Domain.Entities.General.APIRequest apiRequest, bool withBearer = true)
+        public async Task<T> SendAsync<T>(Domain.Entities.General.APIRequest apiRequest, bool withBearer = true)
         {
             using var requestMessage = new HttpRequestMessage(apiRequest.Method, apiRequest.Url);
 

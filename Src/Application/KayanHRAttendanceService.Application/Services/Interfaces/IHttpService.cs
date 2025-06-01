@@ -1,5 +1,4 @@
-﻿
-namespace KayanHRAttendanceService.WindowsService.Services.IServices;
+﻿namespace KayanHRAttendanceService.Application.Services.Interfaces;
 
 public interface IHttpService
 {

@@ -1,8 +1,13 @@
-﻿using KayanHRAttendanceService.Application.Common.Interfaces;
+﻿using KayanHRAttendanceService.Application.AttendanceConnector.Interfaces;
+using KayanHRAttendanceService.Application.Common.Interfaces;
+using KayanHRAttendanceService.Application.Services.Interfaces;
+using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Infrastructure.ApplicationDbContext;
+using KayanHRAttendanceService.Infrastructure.AttendanceConnector.BioStar;
+using KayanHRAttendanceService.Infrastructure.AttendanceConnector.BioTime;
+using KayanHRAttendanceService.Infrastructure.AttendanceConnector.Databases;
 using KayanHRAttendanceService.Infrastructure.Repository;
-using KayanHRAttendanceService.WindowsService.Services;
-using KayanHRAttendanceService.WindowsService.Services.IServices;
+using KayanHRAttendanceService.Infrastructure.Services;
 using KayanHRAttendanceService.WindowsService.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -42,7 +47,6 @@ namespace KayanHRAttendanceService.WindowsService
                 Log.CloseAndFlush();
             }
         }
-
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
@@ -58,20 +62,21 @@ namespace KayanHRAttendanceService.WindowsService
                     services.AddScoped<IUnitOfWork, UnitOfWork>();
 
                     var config = context.Configuration;
-                    //services.Configure<IntegrationSettings>(config.GetSection("Integration"));
 
-                    //var integrationSettings = config.GetSection("Integration").Get<IntegrationSettings>();
+                    services.Configure<IntegrationSettings>(config.GetSection("Integration"));
 
-                    //switch (integrationSettings.Type)
-                    //{
-                    //    case 1: services.AddSingleton<IAttendanceConnector, BioStarConnector>(); break;
-                    //    case 2: services.AddSingleton<IAttendanceConnector, BioTimeConnector>(); break;
-                    //    case 3: services.AddSingleton<IAttendanceConnector, MSSqlServerConnector>(); break;
-                    //    case 4: services.AddSingleton<IAttendanceConnector, PostgreSqlConnector>(); break;
-                    //    case 5: services.AddSingleton<IAttendanceConnector, MySQLConnector>(); break;
-                    //    default:
-                    //        throw new InvalidOperationException("Unsupported integration type");
-                    //}
+                    var integrationSettings = config.GetSection("Integration").Get<IntegrationSettings>();
+
+                    switch (integrationSettings.Type)
+                    {
+                        case 1: services.AddSingleton<IAttendanceConnector, BioStarConnector>(); break;
+                        case 2: services.AddSingleton<IAttendanceConnector, BioTimeConnector>(); break;
+                        case 3: services.AddSingleton<IAttendanceConnector, MSSqlServerConnector>(); break;
+                        case 4: services.AddSingleton<IAttendanceConnector, PostgreSqlConnector>(); break;
+                        case 5: services.AddSingleton<IAttendanceConnector, MySQLConnector>(); break;
+                        default:
+                            throw new InvalidOperationException("Unsupported integration type");
+                    }
 
                     services.AddSingleton<IAttendanceFetcherService, AttendanceFetcherService>();
                     services.AddSingleton<IHttpService, HttpService>();

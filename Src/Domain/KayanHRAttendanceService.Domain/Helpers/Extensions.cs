@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Data;
 
-namespace KayanHRAttendanceService.WindowsService.Helpers;
+namespace KayanHRAttendanceService.Domain.Helpers;
 
 public static class Extensions
 {
@@ -34,7 +34,7 @@ public static class Extensions
         if (txt != null)
         {
             var converter = TypeDescriptor.GetConverter(typeof(T));
-            return (T)(converter.ConvertFromInvariantString(txt.ToString()));
+            return (T)converter.ConvertFromInvariantString(txt.ToString());
         }
         return default;
     }
@@ -119,7 +119,7 @@ public static class Extensions
             {
                 if (dr.IDataRecordHasColumn(prop.Name) == true)
                 {
-                    if (!object.Equals(dr[prop.Name], DBNull.Value))
+                    if (!Equals(dr[prop.Name], DBNull.Value))
                     {
                         if (prop.PropertyType == typeof(DateTime) || prop.PropertyType == typeof(DateTime?))
                         {
