@@ -58,7 +58,7 @@ namespace KayanHRAttendanceService.WindowsService
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite("Data Source=app.db"));
+                    services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite("Data Source=AppData/attendance.db"));
                     services.AddScoped<IUnitOfWork, UnitOfWork>();
 
                     var config = context.Configuration;

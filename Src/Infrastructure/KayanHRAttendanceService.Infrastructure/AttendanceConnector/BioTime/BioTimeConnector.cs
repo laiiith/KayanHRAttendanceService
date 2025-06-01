@@ -1,10 +1,9 @@
-﻿using KayanHRAttendanceService.Application.AttendanceConnector.Interfaces;
+﻿using KayanHRAttendanceService.Application.AttendanceConnector.DTO;
+using KayanHRAttendanceService.Application.AttendanceConnector.Interfaces;
 using KayanHRAttendanceService.Application.Services.Interfaces;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System.Text.Json;
 
 namespace KayanHRAttendanceService.Infrastructure.AttendanceConnector.BioTime;
 
@@ -80,24 +79,4 @@ public class BioTimeConnector : AttendanceConnector, IAttendanceConnector
 
         return response.AccessToken;
     }
-}
-record BioTimeResponseDTO
-{
-    [JsonProperty("id")]
-    public string ID { get; set; }
-    [JsonProperty("emp_code")]
-    public string EmployeeCode { get; set; }
-    [JsonProperty("punch_time")]
-    public string PunchTime { get; set; }
-    [JsonProperty("terminal_alias")]
-    public string MachineName { get; set; }
-    [JsonProperty("terminal_sn")]
-    public string MachineSerialNo { get; set; }
-    [JsonProperty("punch_state")]
-    public string PunchStatus { get; set; }
-}
-record TokenDTO
-{
-    [JsonProperty("token")]
-    public string AccessToken { get; set; }
 }
