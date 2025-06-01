@@ -2,14 +2,12 @@
 using KayanHRAttendanceService.Application.Common.Interfaces;
 using KayanHRAttendanceService.Application.Services.Interfaces;
 using KayanHRAttendanceService.Domain.Entities.General;
-using KayanHRAttendanceService.Infrastructure.ApplicationDbContext;
 using KayanHRAttendanceService.Infrastructure.AttendanceConnector.BioStar;
 using KayanHRAttendanceService.Infrastructure.AttendanceConnector.BioTime;
 using KayanHRAttendanceService.Infrastructure.AttendanceConnector.Databases;
 using KayanHRAttendanceService.Infrastructure.Repository;
 using KayanHRAttendanceService.Infrastructure.Services;
 using KayanHRAttendanceService.WindowsService.Worker;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -58,7 +56,6 @@ namespace KayanHRAttendanceService.WindowsService
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite("Data Source=AppData/attendance.db"));
                     services.AddScoped<IUnitOfWork, UnitOfWork>();
 
                     var config = context.Configuration;

@@ -28,19 +28,20 @@ public class BioTimeConnector : AttendanceConnector, IAttendanceConnector
         _password = configuration["Integration:Password"] ?? throw new ArgumentNullException("Integration:Password");
         _startDate = configuration["Integration:Start_Date"] ?? DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-dd");
         _endDate = configuration["Integration:End_Date"] ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
+
         if (!int.TryParse(configuration["Integration:Page_Size"], out _pageSize))
         {
             _pageSize = 100;
             _logger.LogWarning("Invalid or missing 'Page_Size' config. Defaulting to 100.");
         }
     }
+
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
         var punches = new List<AttendanceRecord>();
         var token = await AuthenticateAsync();
 
         int page = 1;
-
         while (true)
         {
             var response = await _httpService.SendAsync<List<BioTimeResponseDTO>>(new Domain.Entities.General.APIRequest
@@ -53,7 +54,7 @@ public class BioTimeConnector : AttendanceConnector, IAttendanceConnector
             if (response == null || response.Count == 0)
                 break;
 
-            punches.AddRange(response.ConvertAll(r => new Domain.Entities.Sqlite.AttendanceRecord
+            punches.AddRange(response.ConvertAll(r => new AttendanceRecord
             {
                 TId = r.ID ?? string.Empty,
                 EmployeeCode = r.EmployeeCode ?? string.Empty,
@@ -68,7 +69,8 @@ public class BioTimeConnector : AttendanceConnector, IAttendanceConnector
 
         return punches;
     }
-    private async Task<string> AuthenticateAsync()
+
+    public async Task<string> AuthenticateAsync()
     {
         var response = await _httpService.SendAsync<TokenDTO>(new Domain.Entities.General.APIRequest
         {
@@ -77,6 +79,10 @@ public class BioTimeConnector : AttendanceConnector, IAttendanceConnector
             Data = new { _username, _password }
         });
 
+        if (response == null || string.IsNullOrEmpty(response.AccessToken))
+            throw new Exception("Authentication failed: token response is null or empty");
+
         return response.AccessToken;
     }
+
 }
