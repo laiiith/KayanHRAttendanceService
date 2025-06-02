@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.ApiBased.BioTime.DTO;
+namespace KayanHRAttendanceService.Application.DTO;
 public record BioTimeResponseDTO
 {
     [JsonProperty("id")]

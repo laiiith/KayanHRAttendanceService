@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.ApiBased.BioStar.DTO;
+namespace KayanHRAttendanceService.Application.DTO;
 public record BioStarResponseDTO
 {
     [JsonProperty("id")]
