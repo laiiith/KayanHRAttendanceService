@@ -10,9 +10,4 @@
     <ProjectReference Include="..\..\Domain\KayanHRAttendanceService.Domain\KayanHRAttendanceService.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="AttendanceConnector\Implementation\" />
-    <Folder Include="Services\Implementation\" />
-  </ItemGroup>
-
 </Project>

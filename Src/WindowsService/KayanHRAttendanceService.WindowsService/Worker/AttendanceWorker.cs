@@ -1,4 +1,4 @@
-﻿using KayanHRAttendanceService.Application.Services.Interfaces;
+﻿using KayanHRAttendanceService.Application.Interfaces;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 

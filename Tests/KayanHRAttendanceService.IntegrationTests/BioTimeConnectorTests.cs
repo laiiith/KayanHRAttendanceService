@@ -1,5 +1,5 @@
-using KayanHRAttendanceService.Application.AttendanceConnector.Interfaces;
-using KayanHRAttendanceService.Application.Services.Interfaces;
+using KayanHRAttendanceService.Application.Interfaces;
+using KayanHRAttendanceService.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
