@@ -9,33 +9,32 @@ using System.Data.Common;
 
 namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.Databases;
 
-public class MySQLConnector(IOptions<IntegrationSettings> settings, ILogger<MySQLConnector> logger) : DatabaseAttendanceConnector, IAttendanceConnector
+public class MySQLConnector(IOptions<IntegrationSettings> settings, ILogger<MySQLConnector> logger) : DatabaseAttendanceConnector<MySQLConnector>(logger), IAttendanceConnector
 {
+    private readonly ILogger<MySQLConnector> _logger = logger;
+
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
         try
         {
             using var sqlConnection = await CreateDbConnection();
             var data = await sqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
-            return [.. data];
-
+            LogRecords(data);
+            return data.AsList();
         }
-        catch (MySql.Data.MySqlClient.MySqlException ex)
+        catch (MySqlException ex) when (ex.Number == 0)
         {
-            switch (ex.Number)
-            {
-                case 0:
-                    logger.LogError("Cannot connect to server.  Contact administrator");
-                    break;
-                case 1045:
-                    logger.LogError("Invalid username/password, please try again");
-                    break;
-            }
+            _logger.LogError("Cannot connect to server. Contact administrator.");
+            throw;
+        }
+        catch (MySqlException ex) when (ex.Number == 1045)
+        {
+            _logger.LogError("Invalid username/password, please try again.");
             throw;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "MySqlException:");
+            _logger.LogError(ex, "An unexpected error occurred while fetching attendance data.");
             throw;
         }
     }

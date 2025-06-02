@@ -9,8 +9,10 @@ using System.Data.Common;
 
 namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.Databases;
 
-public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger<PostgreSqlConnector> logger) : DatabaseAttendanceConnector, IAttendanceConnector
+public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger<PostgreSqlConnector> logger) : DatabaseAttendanceConnector<PostgreSqlConnector>(logger), IAttendanceConnector
 {
+    private ILogger<PostgreSqlConnector> Logger { get; } = logger;
+
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
         try
@@ -21,11 +23,12 @@ public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger
                 throw new InvalidOperationException("NpgsqlConnection Expected");
 
             var data = await npgSqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
+            LogRecords(data);
             return [.. data];
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error in PostgreSqlConnector");
+            Logger.LogError(ex, "Error in PostgreSqlConnector");
             throw;
         }
     }

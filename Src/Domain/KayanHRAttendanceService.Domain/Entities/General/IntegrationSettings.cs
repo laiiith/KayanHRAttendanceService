@@ -10,6 +10,6 @@ public class IntegrationSettings
     public string? PageSize { get; set; }
     public string? StartDate { get; set; }
     public string? EndDate { get; set; }
-    public string? UpdateProcedure { get; set; }
+    public required string UpdateProcedure { get; set; }
     public required string GetDataProcedure { get; set; }
 }

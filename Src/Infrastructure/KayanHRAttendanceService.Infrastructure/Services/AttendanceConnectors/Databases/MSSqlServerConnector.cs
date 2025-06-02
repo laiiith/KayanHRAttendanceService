@@ -10,8 +10,10 @@ using System.Data.Common;
 
 namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.Databases;
 
-public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogger<MSSqlServerConnector> logger) : DatabaseAttendanceConnector, IAttendanceConnector
+public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogger<MSSqlServerConnector> logger) : DatabaseAttendanceConnector<MSSqlServerConnector>(logger), IAttendanceConnector
 {
+    private ILogger<MSSqlServerConnector> Logger { get; } = logger;
+
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
         try
@@ -21,13 +23,13 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogge
             if (sqlConnection is not SqlConnection sqlServerConnection)
                 throw new InvalidOperationException("SqlConnection Expected");
 
-
             var data = await sqlServerConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: CommandType.StoredProcedure);
+            LogRecords(data);
             return [.. data];
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error occurred while fetching data from SQL Server.");
+            Logger.LogError(ex, "Error occurred while fetching data from SQL Server.");
             throw;
         }
     }
