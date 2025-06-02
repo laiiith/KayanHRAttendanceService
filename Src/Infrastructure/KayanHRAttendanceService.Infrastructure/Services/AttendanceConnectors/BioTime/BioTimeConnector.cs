@@ -80,6 +80,8 @@ public class BioTimeConnector : AttendanceConnector, IAttendanceConnector
         });
 
         if (response == null || string.IsNullOrEmpty(response.AccessToken))
+        {
+            _logger.LogError("Authentication failed: token is null or empty");
             throw new Exception("Authentication failed: token response is null or empty");
 
         return response.AccessToken;
