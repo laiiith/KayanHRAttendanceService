@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Text.Json;
 
-namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased.BioStar;
+namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased;
 
 public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSettings> settings, ILogger<BioStarConnector> logger) : IAttendanceConnector
 {
@@ -114,7 +114,7 @@ public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSett
             Query = new
             {
                 limit = pageSize,
-                offset = offset,
+                offset,
                 conditions = new object[]
                 {
                     new { column = "datetime", @operator = 5, values = new[] { isoStart } },
