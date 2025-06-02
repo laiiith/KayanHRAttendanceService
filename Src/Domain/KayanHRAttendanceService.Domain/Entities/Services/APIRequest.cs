@@ -10,6 +10,7 @@ public class APIRequest
     public Dictionary<string, string>? CustomHeaders { get; set; }
     public Dictionary<string, string>? QueryParameters { get; set; }
 }
+
 public enum HttpServiceContentTypes
 {
     application_json, x_www_FormURLurlencoded, text_plain

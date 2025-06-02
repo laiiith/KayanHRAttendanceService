@@ -2,6 +2,7 @@
 using KayanHRAttendanceService.Application.Interfaces;
 using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
+using KayanHRAttendanceService.Domain.Entities.Services;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,20 +14,38 @@ public class BioTimeConnector(IHttpService httpService, IOptions<IntegrationSett
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
         logger.LogInformation("Fetching attendance data from BioTime from {Start} to {End}", settings.Value.StartDate, settings.Value.EndDate);
+
         var punches = new List<AttendanceRecord>();
         var token = await AuthenticateAsync();
+
+        string startTime;
+        if (settings.Value.DynamicDate)
+        {
+            startTime = settings.Value.StartDate!;
+            logger.LogInformation("DynamicDate enabled, but local DB is not used. Using config start_date: {StartDate}", startTime);
+        }
+        else
+        {
+            startTime = settings.Value.StartDate!;
+            logger.LogInformation("DynamicDate disabled; using config start_date: {StartDate}", startTime);
+        }
 
         int page = 1;
         while (true)
         {
-            string url = $"{settings.Value.Server}/iclock/api/transactions/?page={page}&page_size={settings.Value.PageSize}&start_time={settings.Value.StartDate}&end_time={settings.Value.EndDate}";
+            string url = $"{settings.Value.Server}/iclock/api/transactions/" +
+                         $"?page={page}" +
+                         $"&page_size={settings.Value.PageSize}" +
+                         $"&start_time={startTime}" +
+                         $"&end_time={settings.Value.EndDate}";
+
             logger.LogDebug("Requesting page {Page} from BioTime API", page);
 
-            var response = await httpService.SendAsync<List<BioTimeResponseDTO>>(new Domain.Entities.Services.APIRequest
+            var response = await httpService.SendAsync<List<BioTimeResponseDTO>>(new APIRequest
             {
                 Method = HttpMethod.Get,
-                Token = token,
-                Url = url
+                Url = url,
+                Token = token
             });
 
             if (response == null || response.Count == 0)
@@ -45,20 +64,25 @@ public class BioTimeConnector(IHttpService httpService, IOptions<IntegrationSett
                 MachineSerialNo = r.MachineSerialNo ?? string.Empty
             }));
 
+            logger.LogInformation("Fetched {Count} records from page {Page}", response.Count, page);
             page++;
         }
 
-        logger.LogInformation("Fetched {Count} attendance records", punches.Count);
+        logger.LogInformation("Total fetched records: {Total}", punches.Count);
         return punches;
     }
 
-    public async Task<string> AuthenticateAsync()
+    private async Task<string> AuthenticateAsync()
     {
-        var response = await httpService.SendAsync<TokenDTO>(new Domain.Entities.Services.APIRequest
+        var response = await httpService.SendAsync<TokenDTO>(new APIRequest
         {
             Method = HttpMethod.Post,
             Url = $"{settings.Value.Server}/jwt-api-token-auth/",
-            Data = new { username = settings.Value.Username, password = settings.Value.Password }
+            Data = new
+            {
+                username = settings.Value.Username,
+                password = settings.Value.Password
+            }
         });
 
         if (response == null || string.IsNullOrEmpty(response.AccessToken))
@@ -66,6 +90,8 @@ public class BioTimeConnector(IHttpService httpService, IOptions<IntegrationSett
             logger.LogError("Authentication failed: token is null or empty");
             throw new Exception("Authentication failed: token response is null or empty");
         }
+
+        logger.LogInformation("Authentication successful");
 
         return response.AccessToken;
     }

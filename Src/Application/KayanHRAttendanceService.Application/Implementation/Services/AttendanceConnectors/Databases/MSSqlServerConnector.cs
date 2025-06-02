@@ -36,5 +36,4 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogge
     protected override string GetCreateTempTableSql() => "CREATE TABLE #TempTVP(tid INT,flag INT DEFAULT 1);";
 
     protected override string GetInsertTempTableSql() => "INSERT INTO #TempTVP (tid) VALUES (@tid)";
-
 }

@@ -10,7 +10,6 @@ namespace KayanHRAttendanceService.Application.Implementation.Services
     {
         private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
 
-
         public async Task<T> SendAsync<T>(APIRequest apiRequest, bool withBearer = true)
         {
             using var requestMessage = new HttpRequestMessage(apiRequest.Method, apiRequest.Url);

@@ -12,7 +12,6 @@ namespace KayanHRAttendanceService.WindowsService.Worker
         {
             logger.LogInformation("AttendanceWorker started.");
 
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 try

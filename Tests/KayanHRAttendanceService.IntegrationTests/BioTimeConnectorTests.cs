@@ -1,7 +1,5 @@
 using KayanHRAttendanceService.Application.Interfaces;
 using KayanHRAttendanceService.Domain.Entities.Services;
-using KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.BioTime;
-using KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.BioTime.DTO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;

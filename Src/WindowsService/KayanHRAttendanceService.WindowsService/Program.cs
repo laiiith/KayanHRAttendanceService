@@ -1,5 +1,5 @@
-﻿using KayanHRAttendanceService.Application.Implementation;
-using KayanHRAttendanceService.Application.Implementation.Services;
+﻿using KayanHRAttendanceService.Application.Implementation.Services;
+using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased.BioStar;
 using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased.BioTime;
 using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 using KayanHRAttendanceService.Application.Interfaces;
@@ -10,7 +10,6 @@ using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Infrastructure.Data.ApplicationDbContext;
 using KayanHRAttendanceService.Infrastructure.Data.Persistence.Sqlite;
 using KayanHRAttendanceService.Infrastructure.Services;
-using KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.ApiBased.BioStar;
 using KayanHRAttendanceService.WindowsService.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,7 +19,7 @@ using Serilog;
 
 namespace KayanHRAttendanceService.WindowsService
 {
-    class Program
+    internal class Program
     {
         // Example workflow
         // 1. Retrieve data from device and push to RabbitMQ
@@ -50,6 +49,7 @@ namespace KayanHRAttendanceService.WindowsService
                 Log.CloseAndFlush();
             }
         }
+
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)

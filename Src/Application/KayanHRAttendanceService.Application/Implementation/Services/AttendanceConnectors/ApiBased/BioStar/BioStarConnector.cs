@@ -1,135 +1,151 @@
 ﻿using KayanHRAttendanceService.Application.Interfaces;
 using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
+using KayanHRAttendanceService.Domain.Entities.Services;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Globalization;
+using System.Text.Json;
 
-namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.ApiBased.BioStar;
+namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased.BioStar;
 
 public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSettings> settings, ILogger<BioStarConnector> logger) : IAttendanceConnector
 {
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
-        throw new NotImplementedException();
-        //var records = new List<AttendanceRecord>();
-        //string fromDate = _startDate;
+        logger.LogInformation("Fetching attendance data from BioStar from {Start} to {End}", settings.Value.StartDate, settings.Value.EndDate);
 
-        //if (_dynamicDate)
-        //{
-        //    string? lastPunch = await GetLastPunchTimeAsync();
+        if (!int.TryParse(settings.Value.PageSize, out int pageSize))
+        {
+            logger.LogError("Invalid PageSize value: {PageSize}", settings.Value.PageSize);
+            throw new Exception("Invalid PageSize value in settings.");
+        }
 
-        //    if (!string.IsNullOrWhiteSpace(lastPunch))
-        //    {
-        //        fromDate = lastPunch;
-        //        logger.LogInformation("Dynamic date enabled. Using last punch time: {Time}", fromDate);
-        //    }
-        //    else
-        //    {
-        //        logger.LogInformation("DB empty. Using config start_date: {Start}", fromDate);
-        //    }
-        //}
+        var records = new List<AttendanceRecord>();
+        string fromDate = settings.Value.StartDate!;
+        string toDate = settings.Value.EndDate!;
+        string sessionId = await AuthenticateAsync();
 
-        //while (true)
-        //{
-        //    var batch = await RequestBatchAsync(fromDate);
-        //    if (batch == null || batch.Count == 0)
-        //        break;
+        int page = 0;
+        while (true)
+        {
+            var batch = await RequestBatchAsync(sessionId, fromDate, toDate, page, pageSize);
+            if (batch == null || batch.Count == 0)
+            {
+                logger.LogInformation("No more data found. Stopping at page {Page}", page);
+                break;
+            }
 
-        //    foreach (var item in batch)
-        //    {
-        //        string? functionCode = null;
-        //        if (item.TryGetProperty("event_type_id", out var eventType) && eventType.TryGetProperty("code", out var codeProp))
-        //        {
-        //            functionCode = codeProp.GetString();
-        //        }
-        //        else if (item.TryGetProperty("tna_key", out var tnaKey))
-        //        {
-        //            functionCode = tnaKey.GetString();
-        //        }
+            foreach (var item in batch)
+            {
+                string? functionCode = null;
 
-        //        records.Add(new AttendanceRecord
-        //        {
-        //            TId = item.GetProperty("index").ToString(),
-        //            EmployeeCode = item.GetProperty("user_id").GetProperty("user_id").GetString() ?? string.Empty,
-        //            PunchTime = item.GetProperty("datetime").GetString() ?? string.Empty,
-        //            Function = functionCode ?? string.Empty,
-        //            MachineName = item.GetProperty("device_id").GetProperty("name").GetString() ?? string.Empty,
-        //            MachineSerialNo = string.Empty
-        //        });
+                if (item.TryGetProperty("event_type_id", out var eventType) && eventType.TryGetProperty("code", out var codeProp))
+                {
+                    functionCode = codeProp.GetString();
+                }
+                else if (item.TryGetProperty("tna_key", out var tnaKey))
+                {
+                    functionCode = tnaKey.GetString();
+                }
 
-        //        logger.LogInformation("Fetched Punch: {Tid}", item.GetProperty("index").ToString());
-        //    }
+                records.Add(new AttendanceRecord
+                {
+                    TId = item.GetProperty("index").ToString(),
+                    EmployeeCode = item.GetProperty("user_id").GetProperty("user_id").GetString() ?? string.Empty,
+                    PunchTime = item.GetProperty("datetime").GetString() ?? string.Empty,
+                    Function = functionCode ?? string.Empty,
+                    MachineName = item.GetProperty("device_id").GetProperty("name").GetString() ?? string.Empty,
+                    MachineSerialNo = string.Empty
+                });
 
-        //    if (batch.Count < _limit)
-        //        break;
+                logger.LogDebug("Fetched Punch: {Tid}", item.GetProperty("index").ToString());
+            }
 
-        //    fromDate = batch.Last().GetProperty("datetime").GetString() ?? fromDate;
-        //}
+            if (batch.Count < pageSize)
+                break;
 
-        //return records;
+            fromDate = batch.Last().GetProperty("datetime").GetString() ?? fromDate;
+            page++;
+        }
+
+        logger.LogInformation("Fetched {Count} attendance records", records.Count);
+        return records;
     }
 
-    //private async Task<string> AuthenticateAsync()
-    //{
-    //    var payload = new
-    //    {
-    //        User = new
-    //        {
-    //            login_id = _username,
-    //            password = _password
-    //        }
-    //    };
+    private async Task<string> AuthenticateAsync()
+    {
+        var payload = new
+        {
+            User = new
+            {
+                login_id = settings.Value.Username,
+                password = settings.Value.Password
+            }
+        };
 
+        var response = await httpService.SendAsync<JsonElement>(new APIRequest
+        {
+            Method = HttpMethod.Post,
+            Url = $"{settings.Value.Server}/api/login",
+            Data = payload
+        });
 
-    //    var response = await httpService.SendAsync<object>(new APIRequest
-    //    {
-    //        Method = HttpMethod.Post,
-    //        Url = $"{_server}/api/login",
-    //        Data = payload
-    //    });
+        if (response.ValueKind == JsonValueKind.Object &&
+            response.TryGetProperty("SessionID", out var sessionIdProp) &&
+            sessionIdProp.ValueKind == JsonValueKind.String)
+        {
+            return sessionIdProp.GetString()!;
+        }
 
-    //}
+        logger.LogError("Authentication failed: invalid response");
+        throw new Exception("Authentication failed: SessionID not found");
+    }
 
-    //private async Task<List<JsonElement>> RequestBatchAsync(string dateStr)
-    //{
-    //    string iso = DateTime.Parse(dateStr).ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-    //    string sessionId = await AuthenticateAsync();
+    private async Task<List<JsonElement>> RequestBatchAsync(string sessionId, string fromDate, string toDate, int page, int pageSize)
+    {
+        int offset = page * pageSize;
 
-    //    var body = new
-    //    {
-    //        Query = new
-    //        {
-    //            limit = _limit,
-    //            conditions = new object[]
-    //              {
-    //                  new { column = "datetime", @operator = 5, values = new string[] { iso } },
-    //                  new { column = "user_id", @operator = 1, values = new object[] { new { user_id = "" } } }
-    //              },
-    //            orders = new[]
-    //            {
-    //                new { column = "datetime", descending = false }
-    //            }
-    //        }
-    //    };
+        string isoStart = DateTime.Parse(fromDate).ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
 
-    //    var response = await httpService.SendAsync<JsonElement>(new APIRequest
-    //    {
-    //        Method = HttpMethod.Post,
-    //        Url = $"{_server}/api/events/search",
-    //        Data = body,
+        var body = new
+        {
+            Query = new
+            {
+                limit = pageSize,
+                offset = offset,
+                conditions = new object[]
+                {
+                    new { column = "datetime", @operator = 5, values = new[] { isoStart } },
+                },
+                orders = new[]
+                {
+                    new { column = "datetime", descending = false }
+                }
+            }
+        };
 
-    //    });
+        var response = await httpService.SendAsync<JsonElement>(new APIRequest
+        {
+            Method = HttpMethod.Post,
+            Url = $"{settings.Value.Server}/api/events/search",
+            Data = body,
+            CustomHeaders = new Dictionary<string, string>
+            {
+                { "bs-session-id", sessionId }
+            }
+        });
 
-    //    if (response.ValueKind == JsonValueKind.Object &&
-    //        response.TryGetProperty("EventCollection", out var eventCollection) &&
-    //        eventCollection.TryGetProperty("rows", out var rows) &&
-    //        rows.ValueKind == JsonValueKind.Array)
-    //    {
-    //        return rows.EnumerateArray().ToList();
-    //    }
+        if (response.ValueKind == JsonValueKind.Object &&
+            response.TryGetProperty("EventCollection", out var eventCollection) &&
+            eventCollection.TryGetProperty("rows", out var rows) &&
+            rows.ValueKind == JsonValueKind.Array)
+        {
+            return rows.EnumerateArray().ToList();
+        }
 
-    //    logger.LogWarning("No rows returned from BioStar search.");
-    //    return new List<JsonElement>();
-    //}
+        logger.LogWarning("No rows returned from BioStar search.");
+        return new List<JsonElement>();
+    }
 }
