@@ -7,9 +7,9 @@ public class IntegrationSettings
     public required string ConnectionString { get; set; }
     public string? Username { get; set; }
     public string? Password { get; set; }
-    public string? Page_Size { get; set; }
-    public string? Start_Date { get; set; }
-    public string? End_Date { get; set; }
+    public string? PageSize { get; set; }
+    public string? StartDate { get; set; }
+    public string? EndDate { get; set; }
     public string? UpdateProcedure { get; set; }
     public required string GetDataProcedure { get; set; }
 }
