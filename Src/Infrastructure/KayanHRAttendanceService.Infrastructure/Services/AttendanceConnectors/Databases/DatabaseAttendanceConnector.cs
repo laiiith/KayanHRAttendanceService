@@ -1,5 +1,6 @@
 ﻿using FastMember;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
+using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Data.Common;
 
@@ -8,6 +9,14 @@ namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.
 public abstract class DatabaseAttendanceConnector : AttendanceConnector
 {
     protected abstract Task<DbConnection> CreateDbConnection();
+    protected void AddDatabaseParameters(SqlCommand command, List<SqlParameter> sqlParameters)
+    {
+        command.Parameters.Clear();
+        foreach (SqlParameter sqlParameter in sqlParameters)
+        {
+            command.Parameters.Add(sqlParameter);
+        }
+    }
     protected List<AttendanceRecord> MapToList(IDataReader dataReader)
     {
         var list = new List<AttendanceRecord>();

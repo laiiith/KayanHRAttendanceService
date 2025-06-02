@@ -10,8 +10,6 @@ namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.
 
 public class MySQLConnector(IOptions<IntegrationSettings> settings, ILogger<MySQLConnector> logger) : DatabaseAttendanceConnector, IAttendanceConnector
 {
-    private readonly string _connectionString = settings.Value.ConnectionString;
-
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
         try
@@ -47,7 +45,7 @@ public class MySQLConnector(IOptions<IntegrationSettings> settings, ILogger<MySQ
 
     protected override async Task<DbConnection> CreateDbConnection()
     {
-        var sqlConnection = new MySqlConnection(_connectionString);
+        var sqlConnection = new MySqlConnection(settings.Value.ConnectionString);
         await sqlConnection.OpenAsync();
         return sqlConnection;
     }
