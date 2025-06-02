@@ -3,7 +3,7 @@ using KayanHRAttendanceService.Domain.Interfaces;
 
 namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.Databases;
 
-public class PostgreSqlConnector : AttendanceConnector, IAttendanceConnector
+public class PostgreSqlConnector : DatabaseAttendanceConnector, IAttendanceConnector
 {
     public Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
