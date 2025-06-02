@@ -1,3 +1,4 @@
+using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased.BioTime;
 using KayanHRAttendanceService.Application.Interfaces;
 using KayanHRAttendanceService.Domain.Entities.Services;
 using Microsoft.Extensions.Configuration;
