@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Src\Application\KayanHRAttendanceService.Application\KayanHRAttendanceService.Application.csproj" />
     <ProjectReference Include="..\..\Src\Infrastructure\KayanHRAttendanceService.Infrastructure\KayanHRAttendanceService.Infrastructure.csproj" />
   </ItemGroup>
 
