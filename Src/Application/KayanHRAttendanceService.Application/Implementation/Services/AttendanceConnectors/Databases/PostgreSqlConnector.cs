@@ -1,11 +1,11 @@
-﻿using Dapper;
+﻿using System.Data.Common;
+using Dapper;
 using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
-using System.Data.Common;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
@@ -15,12 +15,25 @@ public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger
     {
         using var sqlConnection = await CreateDbConnection();
 
-        if (sqlConnection is not NpgsqlConnection npgSqlConnection)
-            throw new InvalidOperationException("NpgsqlConnection Expected");
+        //if (sqlConnection is not NpgsqlConnection npgSqlConnection)
+        //    throw new InvalidOperationException("NpgsqlConnection Expected");
 
-        var data = await npgSqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
-        LogRecords(data);
-        return data.AsList();
+        //var data = await npgSqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
+        //LogRecords(data);
+        //return data.AsList();
+
+
+        if (sqlConnection is DbConnection connection)
+        {
+            var data = await connection.QueryAsync<AttendanceRecord>(
+                settings.Value.GetDataProcedure,
+                commandType: System.Data.CommandType.StoredProcedure
+            );
+            LogRecords(data);
+            return data.AsList();
+        }
+
+        throw new InvalidOperationException("DbConnection Expected");
     }
 
     protected override async Task<DbConnection> CreateDbConnection()
@@ -34,3 +47,5 @@ public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger
 
     protected override string GetCreateTempTableSql() => "CREATE TEMP TABLE temp_tvp (tid INT, flag INT DEFAULT 1) ON COMMIT DROP";
 }
+
+

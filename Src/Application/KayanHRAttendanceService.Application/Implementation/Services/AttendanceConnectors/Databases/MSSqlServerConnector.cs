@@ -1,12 +1,12 @@
-﻿using Dapper;
+﻿using System.Data;
+using System.Data.Common;
+using Dapper;
 using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Data;
-using System.Data.Common;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
@@ -14,12 +14,12 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogge
 {
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
-        using var sqlConnection = await CreateDbConnection() as SqlConnection;
+        using var dbConnection = await CreateDbConnection();
 
-        if (sqlConnection is not SqlConnection sqlServerConnection)
-            throw new InvalidOperationException("SqlConnection Expected");
+        var data = await dbConnection.QueryAsync<AttendanceRecord>(
+            settings.Value.GetDataProcedure,
+            commandType: CommandType.StoredProcedure);
 
-        var data = await sqlServerConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: CommandType.StoredProcedure);
         LogRecords(data);
         return [.. data];
     }
