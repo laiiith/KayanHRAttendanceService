@@ -1,16 +1,19 @@
-﻿using KayanHRAttendanceService.Application.Interfaces;
+﻿using System.Globalization;
+using System.Text.Json;
+using KayanHRAttendanceService.Application.Interfaces;
 using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Services;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Globalization;
-using System.Text.Json;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased;
 
-public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSettings> settings, ILogger<BioStarConnector> logger) : IAttendanceConnector
+public class BioStarConnector(
+    IHttpService httpService,
+    IOptions<IntegrationSettings> settings,
+    ILogger<BioStarConnector> logger) : IAttendanceConnector
 {
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
@@ -23,6 +26,7 @@ public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSett
         }
 
         var records = new List<AttendanceRecord>();
+
         string fromDate = settings.Value.StartDate!;
         string toDate = settings.Value.EndDate!;
         string sessionId = await AuthenticateAsync();
@@ -31,7 +35,7 @@ public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSett
         while (true)
         {
             var batch = await RequestBatchAsync(sessionId, fromDate, toDate, page, pageSize);
-            if (batch == null || batch.Count == 0)
+            if (batch is null || batch.Count == 0)
             {
                 logger.LogInformation("No more data found. Stopping at page {Page}", page);
                 break;
@@ -41,7 +45,8 @@ public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSett
             {
                 string? functionCode = null;
 
-                if (item.TryGetProperty("event_type_id", out var eventType) && eventType.TryGetProperty("code", out var codeProp))
+                if (item.TryGetProperty("event_type_id", out var eventType) &&
+                    eventType.TryGetProperty("code", out var codeProp))
                 {
                     functionCode = codeProp.GetString();
                 }
@@ -50,14 +55,28 @@ public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSett
                     functionCode = tnaKey.GetString();
                 }
 
+                string employeeCode = string.Empty;
+                if (item.TryGetProperty("user_id", out var userIdProp) &&
+                    userIdProp.TryGetProperty("user_id", out var userCodeProp))
+                {
+                    employeeCode = userCodeProp.GetString() ?? string.Empty;
+                }
+
+                string machineName = string.Empty;
+                if (item.TryGetProperty("device_id", out var deviceIdProp) &&
+                    deviceIdProp.TryGetProperty("name", out var deviceNameProp))
+                {
+                    machineName = deviceNameProp.GetString() ?? string.Empty;
+                }
+
                 records.Add(new AttendanceRecord
                 {
                     TId = item.GetProperty("index").ToString(),
-                    EmployeeCode = item.GetProperty("user_id").GetProperty("user_id").GetString() ?? string.Empty,
+                    EmployeeCode = employeeCode.Trim(),
                     PunchTime = item.GetProperty("datetime").GetString() ?? string.Empty,
-                    Function = functionCode ?? string.Empty,
-                    MachineName = item.GetProperty("device_id").GetProperty("name").GetString() ?? string.Empty,
-                    MachineSerialNo = string.Empty
+                    Function = functionCode?.Trim() ?? string.Empty,
+                    MachineName = machineName.Trim(),
+                    MachineSerialNo = string.Empty // Not provided in API
                 });
 
                 logger.LogDebug("Fetched Punch: {Tid}", item.GetProperty("index").ToString());
@@ -99,15 +118,21 @@ public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSett
             return sessionIdProp.GetString()!;
         }
 
-        logger.LogError("Authentication failed: invalid response");
-        throw new Exception("Authentication failed: SessionID not found");
+        logger.LogError("Authentication failed: SessionID not found.");
+        throw new Exception("Authentication failed.");
     }
 
     private async Task<List<JsonElement>> RequestBatchAsync(string sessionId, string fromDate, string toDate, int page, int pageSize)
     {
         int offset = page * pageSize;
 
-        string isoStart = DateTime.Parse(fromDate).ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+        if (!DateTime.TryParse(fromDate, out var parsedStart))
+        {
+            logger.LogError("Invalid fromDate format: {FromDate}", fromDate);
+            throw new Exception("Invalid fromDate format.");
+        }
+
+        string isoStart = parsedStart.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
 
         var body = new
         {
@@ -146,6 +171,6 @@ public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSett
         }
 
         logger.LogWarning("No rows returned from BioStar search.");
-        return new List<JsonElement>();
+        return [];
     }
 }
