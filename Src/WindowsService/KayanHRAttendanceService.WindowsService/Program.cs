@@ -58,10 +58,10 @@ namespace KayanHRAttendanceService.WindowsService
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    if (Directory.Exists())
-                    {
-                        Directory.CreateDirectory("Database");
-                    }
+                    //if (Directory.Exists())
+                    //{
+                    //    Directory.CreateDirectory("Database");
+                    //}
                     services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite("Data Source=Database/attendance.db"));
                     services.AddScoped<IUnitOfWork, UnitOfWork>();
 
