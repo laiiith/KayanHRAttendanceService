@@ -11,5 +11,5 @@ public class IntegrationSettings
     public string? Start_Date { get; set; }
     public string? End_Date { get; set; }
     public string? UpdateProcedure { get; set; }
-    public string? GetDataProcedure { get; set; }
+    public required string GetDataProcedure { get; set; }
 }

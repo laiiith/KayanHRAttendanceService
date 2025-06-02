@@ -1,52 +1,22 @@
-﻿using System.Globalization;
-using System.Text.Json;
-using KayanHRAttendanceService.Application.Interfaces;
+﻿using KayanHRAttendanceService.Application.Interfaces;
 using KayanHRAttendanceService.Domain.Entities.Services;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using KayanHRAttendanceService.Domain.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
+using System.Text.Json;
 
 namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.BioStar;
 
-public interface IAttendanceStorage
+public class BioStarConnector(IHttpService httpService, ILogger<BioStarConnector> logger) : AttendanceConnector, IAttendanceConnector
 {
-    Task<string?> GetLastPunchTimeAsync();
-}
-public class BioStarConnector : AttendanceConnector, IAttendanceConnector
-{
-    private readonly IHttpService _httpService;
-    private readonly ILogger<BioStarConnector> _logger;
     private readonly string _server;
     private readonly string _username;
     private readonly string _password;
     private readonly int _limit;
     private readonly string _startDate;
     private readonly bool _dynamicDate;
-    private readonly IAttendanceStorage _storage;
 
-    public BioStarConnector(
-        IHttpService httpService,
-        IConfiguration configuration,
-        ILogger<BioStarConnector> logger,
-        IAttendanceStorage storage)
-    {
-        _httpService = httpService;
-        _logger = logger;
-        _storage = storage;
-
-        _server = configuration["Integration:Server"] ?? throw new ArgumentNullException("Integration:Server");
-        _username = configuration["Integration:Username"] ?? throw new ArgumentNullException("Integration:Username");
-        _password = configuration["Integration:Password"] ?? throw new ArgumentNullException("Integration:Password");
-        _startDate = configuration["Integration:Start_Date"] ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
-        _dynamicDate = bool.TryParse(configuration["Integration:Dynamic_Date"], out var dyn) && dyn;
-
-        if (!int.TryParse(configuration["Integration:Page_Size"], out _limit))
-        {
-            _limit = 100;
-            _logger.LogWarning("Invalid or missing 'Page_Size'. Defaulting to 100.");
-        }
-    }
 
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
@@ -55,15 +25,16 @@ public class BioStarConnector : AttendanceConnector, IAttendanceConnector
 
         if (_dynamicDate)
         {
-            string? lastPunch = await _storage.GetLastPunchTimeAsync();
+            string? lastPunch = await GetLastPunchTimeAsync();
+
             if (!string.IsNullOrWhiteSpace(lastPunch))
             {
                 fromDate = lastPunch;
-                _logger.LogInformation("Dynamic date enabled. Using last punch time: {Time}", fromDate);
+                logger.LogInformation("Dynamic date enabled. Using last punch time: {Time}", fromDate);
             }
             else
             {
-                _logger.LogInformation("DB empty. Using config start_date: {Start}", fromDate);
+                logger.LogInformation("DB empty. Using config start_date: {Start}", fromDate);
             }
         }
 
@@ -95,7 +66,7 @@ public class BioStarConnector : AttendanceConnector, IAttendanceConnector
                     MachineSerialNo = string.Empty
                 });
 
-                _logger.LogInformation("Fetched Punch: {Tid}", item.GetProperty("index").ToString());
+                logger.LogInformation("Fetched Punch: {Tid}", item.GetProperty("index").ToString());
             }
 
             if (batch.Count < _limit)
@@ -124,15 +95,13 @@ public class BioStarConnector : AttendanceConnector, IAttendanceConnector
         };
 
 
-        var response = await _httpService.SendAsync<object>(new APIRequest
+        var response = await httpService.SendAsync<object>(new APIRequest
         {
             Method = HttpMethod.Post,
             Url = $"{_server}/api/login",
             Data = payload
         });
 
-
-        throw new NotImplementedException("يجب تعديل طريقة AuthenticateAsync للحصول على 'bs-session-id' من رأس الاستجابة.");
     }
 
     private async Task<List<JsonElement>> RequestBatchAsync(string dateStr)
@@ -157,7 +126,7 @@ public class BioStarConnector : AttendanceConnector, IAttendanceConnector
             }
         };
 
-        var response = await _httpService.SendAsync<JsonElement>(new APIRequest
+        var response = await httpService.SendAsync<JsonElement>(new APIRequest
         {
             Method = HttpMethod.Post,
             Url = $"{_server}/api/events/search",
@@ -173,7 +142,7 @@ public class BioStarConnector : AttendanceConnector, IAttendanceConnector
             return rows.EnumerateArray().ToList();
         }
 
-        _logger.LogWarning("No rows returned from BioStar search.");
+        logger.LogWarning("No rows returned from BioStar search.");
         return new List<JsonElement>();
     }
 }

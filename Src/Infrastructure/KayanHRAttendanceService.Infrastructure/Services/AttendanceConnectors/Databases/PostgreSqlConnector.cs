@@ -1,4 +1,5 @@
-﻿using KayanHRAttendanceService.Domain.Entities.General;
+﻿using Dapper;
+using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using KayanHRAttendanceService.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -14,11 +15,13 @@ public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger
     {
         try
         {
-            using var sqlConnection = await CreateDbConnection() as NpgsqlConnection;
-            using var sqlCommand = new NpgsqlCommand(settings.Value.GetDataProcedure, sqlConnection);
-            sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
-            using var reader = await sqlCommand.ExecuteReaderAsync();
-            return MapToList(reader);
+            using var sqlConnection = await CreateDbConnection();
+
+            if (sqlConnection is not NpgsqlConnection npgSqlConnection)
+                throw new InvalidOperationException("NpgsqlConnection Expected");
+
+            var data = await npgSqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
+            return [.. data];
         }
         catch (Exception ex)
         {

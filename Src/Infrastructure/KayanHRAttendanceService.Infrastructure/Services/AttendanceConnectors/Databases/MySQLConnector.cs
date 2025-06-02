@@ -1,4 +1,5 @@
-﻿using KayanHRAttendanceService.Domain.Entities.General;
+﻿using Dapper;
+using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using KayanHRAttendanceService.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -15,14 +16,8 @@ public class MySQLConnector(IOptions<IntegrationSettings> settings, ILogger<MySQ
         try
         {
             using var sqlConnection = await CreateDbConnection();
-
-            using var sqlCommand = sqlConnection.CreateCommand();
-            sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
-            sqlCommand.CommandText = settings.Value.GetDataProcedure;
-
-            using var sqlDataReader = await sqlCommand.ExecuteReaderAsync();
-
-            return MapToList(sqlDataReader);
+            var data = await sqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
+            return [.. data];
 
         }
         catch (MySql.Data.MySqlClient.MySqlException ex)
@@ -35,10 +30,12 @@ public class MySQLConnector(IOptions<IntegrationSettings> settings, ILogger<MySQ
                 case 1045:
                     logger.LogError("Invalid username/password, please try again");
                     break;
-                default:
-                    logger.LogError(ex, "MySqlException:");
-                    break;
             }
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "MySqlException:");
             throw;
         }
     }
