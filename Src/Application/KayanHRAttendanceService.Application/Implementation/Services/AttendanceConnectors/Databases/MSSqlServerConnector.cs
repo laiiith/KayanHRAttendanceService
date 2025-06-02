@@ -1,14 +1,14 @@
 ﻿using Dapper;
+using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
-using KayanHRAttendanceService.Domain.Interfaces;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Data;
 using System.Data.Common;
 
-namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.Databases;
+namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
 public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogger<MSSqlServerConnector> logger) : DatabaseAttendanceConnector<MSSqlServerConnector>(logger), IAttendanceConnector
 {

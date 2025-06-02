@@ -1,6 +1,6 @@
 ﻿using KayanHRAttendanceService.Domain.Entities.Sqlite;
 
-namespace KayanHRAttendanceService.Domain.Interfaces;
+namespace KayanHRAttendanceService.Application.Interfaces.Data;
 
 public interface IAttendanceDataRepository : IRepository<AttendanceRecord>
 {

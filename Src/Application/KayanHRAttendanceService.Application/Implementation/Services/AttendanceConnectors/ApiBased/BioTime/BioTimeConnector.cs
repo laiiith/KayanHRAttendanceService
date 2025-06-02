@@ -1,12 +1,12 @@
 ﻿using KayanHRAttendanceService.Application.Interfaces;
+using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
-using KayanHRAttendanceService.Domain.Interfaces;
 using KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.ApiBased.BioTime.DTO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.ApiBased.BioTime;
+namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased.BioTime;
 
 public class BioTimeConnector(IHttpService httpService, IOptions<IntegrationSettings> settings, ILogger<BioTimeConnector> logger) : IAttendanceConnector
 {
@@ -52,21 +52,21 @@ public class BioTimeConnector(IHttpService httpService, IOptions<IntegrationSett
         return punches;
     }
 
-    //public async Task<string> AuthenticateAsync()
-    //{
-    //    var response = await httpService.SendAsync<TokenDTO>(new Domain.Entities.Services.APIRequest
-    //    {
-    //        Method = HttpMethod.Post,
-    //        Url = $"{settings.Value.Server}/jwt-api-token-auth/",
-    //        Data = new { username = settings.Value.Username, password = settings.Value.Password }
-    //    });
+    public async Task<string> AuthenticateAsync()
+    {
+        var response = await httpService.SendAsync<TokenDTO>(new Domain.Entities.Services.APIRequest
+        {
+            Method = HttpMethod.Post,
+            Url = $"{settings.Value.Server}/jwt-api-token-auth/",
+            Data = new { username = settings.Value.Username, password = settings.Value.Password }
+        });
 
-    //    if (response == null || string.IsNullOrEmpty(response.AccessToken))
-    //    {
-    //        logger.LogError("Authentication failed: token is null or empty");
-    //        throw new Exception("Authentication failed: token response is null or empty");
-    //    }
+        if (response == null || string.IsNullOrEmpty(response.AccessToken))
+        {
+            logger.LogError("Authentication failed: token is null or empty");
+            throw new Exception("Authentication failed: token response is null or empty");
+        }
 
-    //    return response.AccessToken;
-    //}
+        return response.AccessToken;
+    }
 }

@@ -1,13 +1,13 @@
 ﻿using Dapper;
+using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
-using KayanHRAttendanceService.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using System.Data.Common;
 
-namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.Databases;
+namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
 public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger<PostgreSqlConnector> logger) : DatabaseAttendanceConnector<PostgreSqlConnector>(logger), IAttendanceConnector
 {

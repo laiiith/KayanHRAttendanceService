@@ -1,4 +1,4 @@
-﻿using KayanHRAttendanceService.Domain.Interfaces;
+﻿using KayanHRAttendanceService.Application.Interfaces.Data;
 
 namespace KayanHRAttendanceService.Infrastructure.Data.Persistence.Sqlite;
 

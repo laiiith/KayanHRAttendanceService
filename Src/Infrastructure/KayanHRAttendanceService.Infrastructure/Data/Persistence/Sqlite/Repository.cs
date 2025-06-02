@@ -1,4 +1,4 @@
-﻿using KayanHRAttendanceService.Domain.Interfaces;
+﻿using KayanHRAttendanceService.Application.Interfaces.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 

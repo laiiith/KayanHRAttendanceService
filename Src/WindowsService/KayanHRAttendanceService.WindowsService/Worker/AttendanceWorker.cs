@@ -1,10 +1,10 @@
-﻿using KayanHRAttendanceService.Application.Interfaces;
+﻿using KayanHRAttendanceService.Application.Interfaces.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace KayanHRAttendanceService.WindowsService.Worker
 {
-    public class AttendanceWorker(ILogger<AttendanceWorker> logger) : BackgroundService
+    public class AttendanceWorker(ISyncAttendanceData syncAttendanceData, ILogger<AttendanceWorker> logger) : BackgroundService
     {
         private readonly ISyncAttendanceData attendanceData;
 

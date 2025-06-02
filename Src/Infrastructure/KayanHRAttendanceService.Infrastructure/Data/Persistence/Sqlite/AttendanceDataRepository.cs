@@ -1,5 +1,5 @@
-﻿using KayanHRAttendanceService.Domain.Entities.Sqlite;
-using KayanHRAttendanceService.Domain.Interfaces;
+﻿using KayanHRAttendanceService.Application.Interfaces.Data;
+using KayanHRAttendanceService.Domain.Entities.Sqlite;
 
 namespace KayanHRAttendanceService.Infrastructure.Data.Persistence.Sqlite;
 

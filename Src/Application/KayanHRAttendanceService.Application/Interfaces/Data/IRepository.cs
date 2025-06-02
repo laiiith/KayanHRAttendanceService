@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace KayanHRAttendanceService.Domain.Interfaces;
+namespace KayanHRAttendanceService.Application.Interfaces.Data;
 
 public interface IRepository<T> where T : class
 {

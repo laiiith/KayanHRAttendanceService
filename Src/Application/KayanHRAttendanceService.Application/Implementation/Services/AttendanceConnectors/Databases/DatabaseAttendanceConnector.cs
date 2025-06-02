@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Data.Common;
 
-namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.Databases;
+namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
 public abstract class DatabaseAttendanceConnector<T>(ILogger<T> logger) where T : class
 {
