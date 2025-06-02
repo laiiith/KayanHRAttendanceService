@@ -52,7 +52,7 @@ public class BioTimeConnector(IHttpService httpService, IOptions<IntegrationSett
         return punches;
     }
 
-    private async Task<string> AuthenticateAsync()
+    public async Task<string> AuthenticateAsync()
     {
         logger.LogDebug("Authenticating with BioTime server: {Server}", settings.Value.Server);
         var response = await httpService.SendAsync<TokenDTO>(new Domain.Entities.Services.APIRequest
