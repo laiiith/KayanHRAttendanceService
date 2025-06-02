@@ -7,7 +7,7 @@ using System.Data.Common;
 
 namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.Databases;
 
-public abstract class DatabaseAttendanceConnector<T>(ILogger<T> logger) : AttendanceConnector where T : class
+public abstract class DatabaseAttendanceConnector<T>(ILogger<T> logger) where T : class
 {
     protected abstract Task<DbConnection> CreateDbConnection();
 
@@ -42,9 +42,9 @@ public abstract class DatabaseAttendanceConnector<T>(ILogger<T> logger) : Attend
             using var sqlConnection = await CreateDbConnection();
             using var sqlTransaction = await sqlConnection.BeginTransactionAsync();
 
-            await sqlConnection.ExecuteAsync("DROP TEMPORARY TABLE IF EXISTS temp_tvp;", transaction: sqlTransaction);
+            var dropTempTableSql = GetDropTempTableSql();
 
-            await sqlConnection.ExecuteAsync("CREATE TEMPORARY TABLE temp_tvp(tid INT,flag INT DEFAULT(1));", transaction: sqlTransaction);
+            await sqlConnection.ExecuteAsync(dropTempTableSql, transaction: sqlTransaction);
 
             var createTempTableSql = GetCreateTempTableSql();
 
@@ -56,7 +56,7 @@ public abstract class DatabaseAttendanceConnector<T>(ILogger<T> logger) : Attend
 
             await sqlConnection.ExecuteAsync(insertSql, insertParams, sqlTransaction);
 
-            await sqlConnection.ExecuteAsync(updateProcedure, commandType: CommandType.StoredProcedure, transaction: transaction);
+            await sqlConnection.ExecuteAsync(updateProcedure, commandType: CommandType.StoredProcedure, transaction: sqlTransaction);
 
             await sqlTransaction.CommitAsync();
         }
@@ -67,7 +67,9 @@ public abstract class DatabaseAttendanceConnector<T>(ILogger<T> logger) : Attend
         }
     }
 
-    private string GetCreateTempTableSql() => "CREATE TEMPORARY TABLE temp_tvp(tid INT,flag INT DEFAULT 1);";
+    protected virtual string GetCreateTempTableSql() => "CREATE TEMPORARY TABLE temp_tvp(tid INT,flag INT DEFAULT (1))";
 
-    private string GetInsertTempTableSql() => "INSERT INTO temp_tvp (tid) VALUES (@tid);";
+    protected virtual string GetInsertTempTableSql() => "INSERT INTO temp_tvp (tid) VALUES (@tid)";
+
+    protected virtual string GetDropTempTableSql() => "DROP TEMPORARY TABLE IF EXISTS temp_tvp";
 }

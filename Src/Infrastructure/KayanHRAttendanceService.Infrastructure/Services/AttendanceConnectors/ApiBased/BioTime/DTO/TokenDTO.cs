@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.BioStar.DTO;
+namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.ApiBased.BioTime.DTO;
 public record TokenDTO
 {
     [JsonProperty("token")]

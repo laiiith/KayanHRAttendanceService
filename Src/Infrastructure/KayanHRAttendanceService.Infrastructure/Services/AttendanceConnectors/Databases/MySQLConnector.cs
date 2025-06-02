@@ -11,32 +11,12 @@ namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.
 
 public class MySQLConnector(IOptions<IntegrationSettings> settings, ILogger<MySQLConnector> logger) : DatabaseAttendanceConnector<MySQLConnector>(logger), IAttendanceConnector
 {
-    private readonly ILogger<MySQLConnector> _logger = logger;
-
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
-        try
-        {
-            using var sqlConnection = await CreateDbConnection();
-            var data = await sqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
-            LogRecords(data);
-            return data.AsList();
-        }
-        catch (MySqlException ex) when (ex.Number == 0)
-        {
-            _logger.LogError("Cannot connect to server. Contact administrator.");
-            throw;
-        }
-        catch (MySqlException ex) when (ex.Number == 1045)
-        {
-            _logger.LogError("Invalid username/password, please try again.");
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An unexpected error occurred while fetching attendance data.");
-            throw;
-        }
+        using var sqlConnection = await CreateDbConnection();
+        var data = await sqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
+        LogRecords(data);
+        return data.AsList();
     }
 
     protected override async Task<DbConnection> CreateDbConnection()

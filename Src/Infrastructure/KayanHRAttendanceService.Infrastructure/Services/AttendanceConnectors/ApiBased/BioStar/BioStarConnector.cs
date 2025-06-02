@@ -5,9 +5,9 @@ using KayanHRAttendanceService.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.BioStar;
+namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.ApiBased.BioStar;
 
-public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSettings> settings, ILogger<BioStarConnector> logger) : AttendanceConnector, IAttendanceConnector
+public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSettings> settings, ILogger<BioStarConnector> logger) : IAttendanceConnector
 {
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {

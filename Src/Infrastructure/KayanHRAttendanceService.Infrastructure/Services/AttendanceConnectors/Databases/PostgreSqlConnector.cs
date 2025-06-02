@@ -11,26 +11,16 @@ namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.
 
 public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger<PostgreSqlConnector> logger) : DatabaseAttendanceConnector<PostgreSqlConnector>(logger), IAttendanceConnector
 {
-    private ILogger<PostgreSqlConnector> Logger { get; } = logger;
-
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
-        try
-        {
-            using var sqlConnection = await CreateDbConnection();
+        using var sqlConnection = await CreateDbConnection();
 
-            if (sqlConnection is not NpgsqlConnection npgSqlConnection)
-                throw new InvalidOperationException("NpgsqlConnection Expected");
+        if (sqlConnection is not NpgsqlConnection npgSqlConnection)
+            throw new InvalidOperationException("NpgsqlConnection Expected");
 
-            var data = await npgSqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
-            LogRecords(data);
-            return [.. data];
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error in PostgreSqlConnector");
-            throw;
-        }
+        var data = await npgSqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
+        LogRecords(data);
+        return data.AsList();
     }
 
     protected override async Task<DbConnection> CreateDbConnection()
@@ -39,4 +29,8 @@ public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger
         await NpgsqlConnection.OpenAsync();
         return NpgsqlConnection;
     }
+
+    protected override string GetDropTempTableSql() => "DROP TABLE IF EXISTS temp_tvp";
+
+    protected override string GetCreateTempTableSql() => "CREATE TEMP TABLE temp_tvp (tid INT, flag INT DEFAULT 1) ON COMMIT DROP";
 }

@@ -12,26 +12,16 @@ namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.
 
 public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogger<MSSqlServerConnector> logger) : DatabaseAttendanceConnector<MSSqlServerConnector>(logger), IAttendanceConnector
 {
-    private ILogger<MSSqlServerConnector> Logger { get; } = logger;
-
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
-        try
-        {
-            using var sqlConnection = await CreateDbConnection() as SqlConnection;
+        using var sqlConnection = await CreateDbConnection() as SqlConnection;
 
-            if (sqlConnection is not SqlConnection sqlServerConnection)
-                throw new InvalidOperationException("SqlConnection Expected");
+        if (sqlConnection is not SqlConnection sqlServerConnection)
+            throw new InvalidOperationException("SqlConnection Expected");
 
-            var data = await sqlServerConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: CommandType.StoredProcedure);
-            LogRecords(data);
-            return [.. data];
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error occurred while fetching data from SQL Server.");
-            throw;
-        }
+        var data = await sqlServerConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: CommandType.StoredProcedure);
+        LogRecords(data);
+        return [.. data];
     }
 
     protected override async Task<DbConnection> CreateDbConnection()
@@ -40,4 +30,11 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogge
         await connection.OpenAsync();
         return connection;
     }
+
+    protected override string GetDropTempTableSql() => "IF OBJECT_ID('tempdb..#TempTVP') IS NOT NULL DROP TABLE #TempTVP;";
+
+    protected override string GetCreateTempTableSql() => "CREATE TABLE #TempTVP(tid INT,flag INT DEFAULT 1);";
+
+    protected override string GetInsertTempTableSql() => "INSERT INTO #TempTVP (tid) VALUES (@tid)";
+
 }
