@@ -1,15 +1,17 @@
-﻿using KayanHRAttendanceService.Domain.Entities.General;
+﻿using System.Data;
+using System.Data.Common;
+using Dapper;
+using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using KayanHRAttendanceService.Domain.Interfaces;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Data;
-using System.Data.Common;
 
 namespace KayanHRAttendanceService.Infrastructure.Services.AttendanceConnectors.Databases;
 
-public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogger<MSSqlServerConnector> logger) : DatabaseAttendanceConnector, IAttendanceConnector
+public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogger<MSSqlServerConnector> logger)
+    : DatabaseAttendanceConnector, IAttendanceConnector
 {
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
@@ -17,22 +19,30 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogge
         {
             using var sqlConnection = await CreateDbConnection() as SqlConnection;
 
-            await using var sqlCommand = new SqlCommand(settings.Value.GetDataProcedure, sqlConnection)
+            var tvp = new SqlParameter("@TempTVP", SqlDbType.Structured)
             {
-                CommandType = CommandType.StoredProcedure
+                TypeName = "dbo.TempTVPType",
+                Value = CreateDataTable([], 1)
             };
-            AddDatabaseParameters(sqlCommand, [new("@TempTVP", SqlDbType.Structured, 1)]);
 
-            var result = await sqlCommand.ExecuteNonQueryAsync();
+            var parameters = new DynamicParameters();
+            parameters.Add("@TempTVP", tvp.Value, dbType: DbType.Object);
 
-            return new List<AttendanceRecord>();
+            var records = (await sqlConnection.QueryAsync<AttendanceRecord>(
+                sql: settings.Value.GetDataProcedure,
+                param: parameters,
+                commandType: CommandType.StoredProcedure
+            )).ToList();
+
+            return records;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error Occured Microsoft Sql Server");
+            logger.LogError(ex, "Error occurred while fetching data from SQL Server using Dapper.");
             throw;
         }
     }
+
     private DataTable CreateDataTable(List<AttendanceRecord> data, int status)
     {
         var table = new DataTable();
@@ -41,16 +51,13 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogge
 
         foreach (var item in data)
         {
-            if (!int.TryParse(item.TId, out int tid))
-            {
-                continue;
-            }
-
+            if (!int.TryParse(item.TId, out int tid)) continue;
             table.Rows.Add(tid, status);
         }
 
         return table;
     }
+
     protected override async Task<DbConnection> CreateDbConnection()
     {
         var connection = new SqlConnection(settings.Value.ConnectionString);
