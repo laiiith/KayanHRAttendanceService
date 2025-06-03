@@ -36,12 +36,7 @@ public class MySQLConnectorUnitTests
             using var sqlConnection = await CreateDbConnection();
             var data = await sqlConnection.QueryAsync<AttendanceRecord>(
                 _settings.Value.GetDataProcedure,
-                commandType: System.Data.CommandType.Text);  // التغيير هنا
-
-            // يمكنك نسخ وظيفة LogRecords من MySQLConnector إذا تريد تسجيل النتائج
-            // هنا استدعاء دالة محمية LogRecords غير ممكن لأنها في MySQLConnector كـ protected
-            // في حال لم تكن متاحة يمكنك إزالة السطر التالي أو طباعتها بطريقة أخرى
-            // LogRecords(data); 
+                commandType: System.Data.CommandType.Text);
 
             return data.AsList();
         }
@@ -70,9 +65,12 @@ public class MySQLConnectorUnitTests
 
         var settings = Options.Create(new IntegrationSettings
         {
-            GetDataProcedure = "SELECT * FROM AttendanceRecord",
-            UpdateProcedure = "FAKE_PROC",
-            ConnectionString = "Fake"
+            Integration = new Integration
+            {
+                FetchDataProcedure = "SELECT * FROM AttendanceRecord",
+                UpdateDataProcedure = "FAKE_PROC",
+                ConnectionString = "Fake"
+            }
         });
 
         var logger = new LoggerFactory().CreateLogger<MySQLConnector>();

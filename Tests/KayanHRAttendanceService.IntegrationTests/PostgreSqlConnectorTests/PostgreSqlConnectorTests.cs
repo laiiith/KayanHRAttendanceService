@@ -21,9 +21,12 @@ public class PostgreSqlConnectorTests
 
         var integrationSettings = new IntegrationSettings
         {
-            ConnectionString = "Host=localhost;Username=test;Password=test;Database=testdb",
-            GetDataProcedure = "GetAttendanceData",
-            UpdateProcedure = "UpdateAttendanceData"
+            Integration = new Integration
+            {
+                ConnectionString = "Host=localhost;Username=test;Password=test;Database=testdb",
+                FetchDataProcedure = "GetAttendanceData",
+                UpdateDataProcedure = "UpdateAttendanceData"
+            }
         };
 
         _mockOptions.Setup(x => x.Value).Returns(integrationSettings);
@@ -68,6 +71,5 @@ public class PostgreSqlConnectorTests
         {
             return Task.FromResult<DbConnection>(result: new KayanHRAttendanceService.IntegrationTests.PostgreSqlConnectorTests.FakeDbToPostgreSql.FakeDbConnection(_mockQueryResult));
         }
-
     }
 }

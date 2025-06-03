@@ -19,22 +19,26 @@ public class BioTimeConnectorTests
     {
         _mockOptions = Options.Create(new IntegrationSettings
         {
-            Server = "http://fake-server.com",
-            Username = "user",
-            Password = "pass",
-            StartDate = "2025-01-01",
-            EndDate = "2025-01-31",
-            PageSize = "100",
-            Function_Mapping = new FunctionMapping
+            Integration = new Integration
             {
-                Attendance_In = "0",
-                Attendance_Out = "1",
-                Break_In = "2",
-                Break_Out = "3",
-                Permission_In = "4",
-                Permission_Out = "5",
-                Overtime_In = "6",
-                Overtime_Out = "7"
+                Server = "http://fake-server.com",
+                Username = "user",
+                Password = "pass",
+                StartDate = "2025-01-01",
+                EndDate = "2025-01-31",
+                PageSize = "100",
+            },
+
+            FunctionMapping = new FunctionMapping
+            {
+                AttendanceIn = "0",
+                AttendanceOut = "1",
+                BreakIn = "2",
+                BreakOut = "3",
+                PermissionIn = "4",
+                PermissionOut = "5",
+                OvertimeIn = "6",
+                OvertimeOut = "7"
             }
         });
 
@@ -43,7 +47,6 @@ public class BioTimeConnectorTests
     [Fact]
     public async Task FetchAttendanceDataAsync_ReturnsAttendanceRecords()
     {
-        // Arrange
         var tokenResponse = new ApiResponse<TokenDTO>
         {
             IsSuccess = true,
@@ -93,10 +96,8 @@ public class BioTimeConnectorTests
             _mockLogger.Object
         );
 
-        // Act
         var result = await connector.FetchAttendanceDataAsync();
 
-        // Assert
         Assert.NotNull(result);
         Assert.Single(result);
         Assert.Equal("EMP001", result[0].EmployeeCode);
