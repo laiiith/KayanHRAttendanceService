@@ -14,7 +14,7 @@ public class MySQLConnectorUnitTests
     class SQLiteTestConnector : MySQLConnector
     {
         private readonly DbConnection _connection;
-        private readonly IOptions<IntegrationSettings> _settings;  // تخزين settings
+        private readonly IOptions<IntegrationSettings> _settings;
         private readonly ILogger<MySQLConnector> _logger;
 
         public SQLiteTestConnector(IOptions<IntegrationSettings> settings, ILogger<MySQLConnector> logger, DbConnection connection)
@@ -30,12 +30,11 @@ public class MySQLConnectorUnitTests
             return Task.FromResult(_connection);
         }
 
-        // دالة جديدة مختلفة الاسم لتغيير commandType
         public async Task<List<AttendanceRecord>> FetchAttendanceDataForTestAsync()
         {
             using var sqlConnection = await CreateDbConnection();
             var data = await sqlConnection.QueryAsync<AttendanceRecord>(
-                _settings.Value.GetDataProcedure,
+                _settings.Value.Integration.FetchDataProcedure,
                 commandType: System.Data.CommandType.Text);
 
             return data.AsList();

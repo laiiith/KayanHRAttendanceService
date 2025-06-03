@@ -74,7 +74,7 @@ public class MSSqlServerConnectorTests
 
         await connector.UpdateFlagForFetchedDataAsync(records, "UpdateFlags");
 
-        Assert.True(fakeConnection.ExecutedCommands.Count >= 3); // drop, create, insert, update
+        Assert.True(fakeConnection.ExecutedCommands.Count >= 3);
     }
 
     [Fact]

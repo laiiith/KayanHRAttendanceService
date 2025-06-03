@@ -19,7 +19,7 @@ public class BioStarConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
 
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
-        logger.LogInformation("Fetching attendance data from BioStar from {Start} to {End}", _settings.StartDate, _settings.EndDate);
+        logger.LogInformation("Fetching attendance data from BioStar from {Start} to {End}", _settings.Integration.StartDate, _settings.Integration.EndDate);
 
         var sessionId = await GetSessionIdAsync();
 
@@ -59,7 +59,7 @@ public class BioStarConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
                 logger.LogInformation("Fetched punch at {PunchTime}", punchTime);
             }
 
-            if (batch.Count < int.Parse(_settings.PageSize))
+            if (batch.Count < int.Parse(_settings.Integration.PageSize))
                 break;
 
             fromTime = DateTime.Parse(batch.Last().Datetime ?? fromTime.ToString("O"));
@@ -76,7 +76,7 @@ public class BioStarConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
         {
             Query = new
             {
-                limit = _settings.PageSize,
+                limit = _settings.Integration.PageSize,
                 conditions = new object[] { new { column = "datetime", @operator = 5, values = new[] { isoDate } }, new { column = "user_id", @operator = 1, values = new[] { new { user_id = string.Empty } } } },
                 orders = new[] { new { column = "datetime", descending = false } }
             }
@@ -85,7 +85,7 @@ public class BioStarConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
         var response = await httpService.SendAsync<BioStarEventSearchResponseDTO>(new APIRequest
         {
             Method = HttpMethod.Post,
-            Url = $"{_settings.Server}/api/events/search",
+            Url = $"{_settings.Integration.Server}/api/events/search",
             Data = payload,
             RequestContentType = HttpServiceContentTypes.application_json,
             ResponseContentType = HttpServiceContentTypes.application_json,
@@ -106,8 +106,8 @@ public class BioStarConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
         var response = await httpService.SendAsync<object>(new APIRequest
         {
             Method = HttpMethod.Post,
-            Url = $"{_settings.Server}/api/login",
-            Data = new { User = new { login_id = _settings.Username, password = _settings.Password } },
+            Url = $"{_settings.Integration.Server}/api/login",
+            Data = new { User = new { login_id = _settings.Integration.Username, password = _settings.Integration.Password } },
             RequestContentType = HttpServiceContentTypes.application_json,
             ResponseContentType = HttpServiceContentTypes.application_json
         });
