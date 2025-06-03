@@ -1,5 +1,6 @@
 ﻿using KayanHRAttendanceService.Application.DTO;
 using KayanHRAttendanceService.Application.Interfaces;
+using KayanHRAttendanceService.Application.Interfaces.Data;
 using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Services;
@@ -7,72 +8,95 @@ using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased.BioTime;
+namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased;
 
-public class BioTimeConnector(IHttpService httpService, IOptions<IntegrationSettings> settings, ILogger<BioTimeConnector> logger) : IAttendanceConnector
+public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, IOptions<IntegrationSettings> settings, ILogger<BioTimeConnector> logger) : IAttendanceConnector
 {
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
-        logger.LogInformation("Fetching attendance data from BioTime from {Start} to {End}", settings.Value.StartDate, settings.Value.EndDate);
+        var token = await GetTokenAsync();
 
-        var punches = new List<AttendanceRecord>();
-        var token = await AuthenticateAsync();
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return [];
+        }
 
-        string startTime;
-        if (settings.Value.DynamicDate)
-        {
-            startTime = settings.Value.StartDate!;
-            logger.LogInformation("DynamicDate enabled, but local DB is not used. Using config start_date: {StartDate}", startTime);
-        }
-        else
-        {
-            startTime = settings.Value.StartDate!;
-            logger.LogInformation("DynamicDate disabled; using config start_date: {StartDate}", startTime);
-        }
+        var startTime = await DetermineStartTimeAsync();
+
+        return await FetchAllPagesAsync(token, startTime);
+    }
+
+    private async Task<List<AttendanceRecord>> FetchAllPagesAsync(string token, string startTime)
+    {
+        var allRecords = new List<AttendanceRecord>();
 
         int page = 1;
+
         while (true)
         {
-            string url = $"{settings.Value.Server}/iclock/api/transactions/" +
-                         $"?page={page}" +
-                         $"&page_size={settings.Value.PageSize}" +
-                         $"&start_time={startTime}" +
-                         $"&end_time={settings.Value.EndDate}";
-
-            logger.LogDebug("Requesting page {Page} from BioTime API", page);
-
-            var response = await httpService.SendAsync<List<BioTimeResponseDTO>>(new APIRequest
-            {
-                Method = HttpMethod.Get,
-                Url = url,
-                Token = token
-            });
-
-            if (response == null || response.Count == 0)
-            {
-                logger.LogInformation("No more data found. Stopping at page {Page}", page);
+            var records = await FetchPageAsync(token, page, startTime);
+            if (records == null || records.Count == 0)
                 break;
-            }
 
-            punches.AddRange(response.ConvertAll(r => new AttendanceRecord
-            {
-                TId = r.ID ?? string.Empty,
-                EmployeeCode = r.EmployeeCode ?? string.Empty,
-                PunchTime = r.PunchTime ?? string.Empty,
-                Function = r.PunchStatus ?? string.Empty,
-                MachineName = r.MachineName ?? string.Empty,
-                MachineSerialNo = r.MachineSerialNo ?? string.Empty
-            }));
-
-            logger.LogInformation("Fetched {Count} records from page {Page}", response.Count, page);
+            allRecords.AddRange(records);
             page++;
         }
 
-        logger.LogInformation("Total fetched records: {Total}", punches.Count);
-        return punches;
+        logger.LogInformation("Total attendance records fetched: {TotalCount}", allRecords.Count);
+        return allRecords;
     }
 
-    private async Task<string> AuthenticateAsync()
+    private async Task<List<AttendanceRecord>?> FetchPageAsync(string token, int page, string startTime)
+    {
+        var response = await httpService.SendAsync<BioTimeResponseDTO>(new APIRequest
+        {
+            Url = $"{settings.Value.Server}/iclock/api/transactions/",
+            Method = HttpMethod.Get,
+            Token = token,
+            QueryParameters = new Dictionary<string, string>
+                {
+                    { "page", page.ToString() },
+                    { "page_size", settings.Value.PageSize },
+                    { "start_time", startTime },
+                    { "end_time", settings.Value.EndDate },
+                },
+            RequestContentType = HttpServiceContentTypes.application_json,
+            ResponseContentType = HttpServiceContentTypes.application_json
+        });
+
+        if (!response.IsSuccess)
+        {
+            logger.LogError("Failed to fetch attendance data on page {Page}. Error: {Error}", page, response.ErrorMessage ?? "Unknown error");
+            return null;
+        }
+
+        if (response.Data?.BioTimePunches == null || response.Data.BioTimePunches.Count == 0)
+        {
+            logger.LogInformation("No attendance data found on page {Page}.", page);
+            return [];
+        }
+
+        return response.Data.BioTimePunches.ConvertAll(r => new AttendanceRecord
+        {
+            TId = r.ID ?? string.Empty,
+            EmployeeCode = r.EmployeeCode ?? string.Empty,
+            PunchTime = r.PunchTime ?? string.Empty,
+            Function = r.PunchStatus ?? string.Empty,
+            MachineName = r.MachineName ?? string.Empty,
+            MachineSerialNo = r.MachineSerialNo ?? string.Empty
+        });
+    }
+
+    private async Task<string> DetermineStartTimeAsync()
+    {
+        if (!settings.Value.DynamicDate)
+            return settings.Value.StartDate;
+
+        var lastPunchTime = await unitOfWork.AttendanceData.GetLastPunchTime();
+        return !string.IsNullOrWhiteSpace(lastPunchTime) ? lastPunchTime : settings.Value.StartDate;
+    }
+
+    private async Task<string?> GetTokenAsync()
     {
         var response = await httpService.SendAsync<TokenDTO>(new APIRequest
         {
@@ -82,17 +106,23 @@ public class BioTimeConnector(IHttpService httpService, IOptions<IntegrationSett
             {
                 username = settings.Value.Username,
                 password = settings.Value.Password
-            }
+            },
+            RequestContentType = HttpServiceContentTypes.application_json,
+            ResponseContentType = HttpServiceContentTypes.application_json
         });
 
-        if (response == null || string.IsNullOrEmpty(response.AccessToken))
+        if (!response.IsSuccess)
         {
-            logger.LogError("Authentication failed: token is null or empty");
-            throw new Exception("Authentication failed: token response is null or empty");
+            logger.LogError("Authentication failed: {Error}", response.ErrorMessage ?? "Unknown error");
+            return null;
         }
 
-        logger.LogInformation("Authentication successful");
+        if (string.IsNullOrWhiteSpace(response.Data?.AccessToken))
+        {
+            logger.LogError("Authentication failed: AccessToken is missing in response");
+            return null;
+        }
 
-        return response.AccessToken;
+        return response.Data.AccessToken;
     }
 }

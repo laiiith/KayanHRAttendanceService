@@ -4,4 +4,5 @@ namespace KayanHRAttendanceService.Application.Interfaces.Data;
 
 public interface IAttendanceDataRepository : IRepository<AttendanceRecord>
 {
+    Task<string> GetLastPunchTime();
 }

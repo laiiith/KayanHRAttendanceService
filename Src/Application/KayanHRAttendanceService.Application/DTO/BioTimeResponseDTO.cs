@@ -3,6 +3,12 @@
 namespace KayanHRAttendanceService.Application.DTO;
 public record BioTimeResponseDTO
 {
+    [JsonProperty("data")]
+    public List<BioTimePunches> BioTimePunches { get; set; }
+}
+
+public record BioTimePunches
+{
     [JsonProperty("id")]
     public string ID { get; set; }
     [JsonProperty("emp_code")]

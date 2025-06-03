@@ -1,6 +1,6 @@
-﻿using System.Data;
+﻿using KayanHRAttendanceService.Domain.Entities.Sqlite;
+using System.Data;
 using System.Data.Common;
-using KayanHRAttendanceService.Domain.Entities.Sqlite;
 
 namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests.FakeDb
 {
@@ -24,7 +24,8 @@ namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests.FakeDb
 
         protected override DbParameterCollection DbParameterCollection => _parameters;
 
-        public override void Cancel() { }
+        public override void Cancel()
+        { }
 
         public override int ExecuteNonQuery()
         {
@@ -55,7 +56,8 @@ namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests.FakeDb
             return new FakeDbDataReader(data);
         }
 
-        public override void Prepare() { }
+        public override void Prepare()
+        { }
 
         protected override DbParameter CreateDbParameter() => new FakeDbParameter();
 

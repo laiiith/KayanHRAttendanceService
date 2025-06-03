@@ -1,19 +1,16 @@
-﻿using System.Globalization;
-using System.Text.Json;
-using KayanHRAttendanceService.Application.Interfaces;
+﻿using KayanHRAttendanceService.Application.Interfaces;
 using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Services;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Globalization;
+using System.Text.Json;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased;
 
-public class BioStarConnector(
-    IHttpService httpService,
-    IOptions<IntegrationSettings> settings,
-    ILogger<BioStarConnector> logger) : IAttendanceConnector
+public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSettings> settings, ILogger<BioStarConnector> logger) : IAttendanceConnector
 {
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {

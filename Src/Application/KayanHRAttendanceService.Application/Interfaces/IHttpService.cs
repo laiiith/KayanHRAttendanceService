@@ -4,5 +4,5 @@ namespace KayanHRAttendanceService.Application.Interfaces;
 
 public interface IHttpService
 {
-    Task<T> SendAsync<T>(APIRequest apiRequest, bool withBearer = true);
+    Task<ApiResponse<TResponse>> SendAsync<TResponse>(APIRequest apiRequest);
 }

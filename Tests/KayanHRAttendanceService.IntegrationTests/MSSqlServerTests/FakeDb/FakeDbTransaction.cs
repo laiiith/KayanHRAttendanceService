@@ -12,8 +12,12 @@ namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests.FakeDb
             _connection = connection;
         }
 
-        public override void Commit() { }
-        public override void Rollback() { }
+        public override void Commit()
+        { }
+
+        public override void Rollback()
+        { }
+
         protected override DbConnection DbConnection => _connection;
         public override IsolationLevel IsolationLevel => IsolationLevel.ReadCommitted;
     }

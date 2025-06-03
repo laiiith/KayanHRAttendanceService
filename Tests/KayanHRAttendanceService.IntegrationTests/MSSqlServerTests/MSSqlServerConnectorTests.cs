@@ -89,9 +89,5 @@ namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()
             ), Times.Once);
         }
-
-
-
-
     }
 }

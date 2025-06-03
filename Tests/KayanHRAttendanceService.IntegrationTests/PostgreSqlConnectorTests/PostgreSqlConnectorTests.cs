@@ -1,11 +1,11 @@
-﻿using System.Data;
-using System.Data.Common;
-using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
+﻿using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using System.Data;
+using System.Data.Common;
 
 namespace KayanHRAttendanceService.Tests
 {
@@ -69,8 +69,6 @@ namespace KayanHRAttendanceService.Tests
             {
                 return Task.FromResult<DbConnection>(new FakeDbConnection(_mockQueryResult));
             }
-
-
         }
 
         private class FakeDbConnection : DbConnection
@@ -89,8 +87,11 @@ namespace KayanHRAttendanceService.Tests
             public override string ServerVersion => "1.0";
             public override ConnectionState State => _state;
 
-            public override void ChangeDatabase(string databaseName) { }
+            public override void ChangeDatabase(string databaseName)
+            { }
+
             public override void Close() => _state = ConnectionState.Closed;
+
             public override void Open() => _state = ConnectionState.Open;
 
             protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
@@ -102,7 +103,6 @@ namespace KayanHRAttendanceService.Tests
             {
                 return new FakeDbCommand(_data, this);
             }
-
         }
 
         private class FakeDbCommand : DbCommand
@@ -125,10 +125,12 @@ namespace KayanHRAttendanceService.Tests
             protected override DbTransaction DbTransaction { get; set; }
             public override bool DesignTimeVisible { get; set; }
 
-            public override void Cancel() { }
-            public override int ExecuteNonQuery() => 0;
-            public override object ExecuteScalar() => null;
+            public override void Cancel()
+            { }
 
+            public override int ExecuteNonQuery() => 0;
+
+            public override object ExecuteScalar() => null;
 
             protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
             {
@@ -137,9 +139,9 @@ namespace KayanHRAttendanceService.Tests
 
             protected override DbParameter CreateDbParameter() => new FakeDbParameter();
 
-            public override void Prepare() { }
+            public override void Prepare()
+            { }
         }
-
 
         private class FakeDbParameterCollection : DbParameterCollection
         {
@@ -212,7 +214,8 @@ namespace KayanHRAttendanceService.Tests
             public override bool SourceColumnNullMapping { get; set; }
             public override int Size { get; set; }
 
-            public override void ResetDbType() { }
+            public override void ResetDbType()
+            { }
         }
 
         private class FakeDbDataReader : DbDataReader
@@ -302,18 +305,31 @@ namespace KayanHRAttendanceService.Tests
             }
 
             public override bool GetBoolean(int ordinal) => Convert.ToBoolean(GetValue(ordinal));
+
             public override byte GetByte(int ordinal) => Convert.ToByte(GetValue(ordinal));
+
             public override long GetBytes(int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length) => 0;
+
             public override char GetChar(int ordinal) => Convert.ToChar(GetValue(ordinal));
+
             public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length) => 0;
+
             public override Guid GetGuid(int ordinal) => Guid.Parse(GetValue(ordinal).ToString());
+
             public override short GetInt16(int ordinal) => Convert.ToInt16(GetValue(ordinal));
+
             public override int GetInt32(int ordinal) => Convert.ToInt32(GetValue(ordinal));
+
             public override long GetInt64(int ordinal) => Convert.ToInt64(GetValue(ordinal));
+
             public override float GetFloat(int ordinal) => Convert.ToSingle(GetValue(ordinal));
+
             public override double GetDouble(int ordinal) => Convert.ToDouble(GetValue(ordinal));
+
             public override string GetString(int ordinal) => GetValue(ordinal).ToString();
+
             public override decimal GetDecimal(int ordinal) => Convert.ToDecimal(GetValue(ordinal));
+
             public override DateTime GetDateTime(int ordinal) => Convert.ToDateTime(GetValue(ordinal));
 
             public override System.Collections.IEnumerator GetEnumerator()

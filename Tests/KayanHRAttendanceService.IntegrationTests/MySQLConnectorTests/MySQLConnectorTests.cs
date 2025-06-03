@@ -1,16 +1,16 @@
-﻿using System.Collections;
-using System.Data;
-using System.Data.Common;
-using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
+﻿using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 using KayanHRAttendanceService.Domain.Entities.General;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Collections;
+using System.Data;
+using System.Data.Common;
 
 namespace KayanHRAttendanceService.Tests
 {
     public class MySQLConnectorUnitTests
     {
-        class TestMySQLConnector : MySQLConnector
+        private class TestMySQLConnector : MySQLConnector
         {
             private readonly DbCommand _command;
 
@@ -55,7 +55,7 @@ namespace KayanHRAttendanceService.Tests
             Assert.Equal("E002", result[1].EmployeeCode);
         }
 
-        class FakeDbConnection : DbConnection
+        private class FakeDbConnection : DbConnection
         {
             private readonly DbCommand _command;
 
@@ -67,16 +67,23 @@ namespace KayanHRAttendanceService.Tests
             public override string ServerVersion => "FakeVersion";
             public override ConnectionState State => ConnectionState.Open;
 
-            public override void ChangeDatabase(string databaseName) { }
-            public override void Close() { }
-            public override void Open() { }
+            public override void ChangeDatabase(string databaseName)
+            { }
+
+            public override void Close()
+            { }
+
+            public override void Open()
+            { }
+
             public override Task OpenAsync(System.Threading.CancellationToken cancellationToken) => Task.CompletedTask;
 
             protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => null;
+
             protected override DbCommand CreateDbCommand() => _command;
         }
 
-        class FakeDbCommand : DbCommand
+        private class FakeDbCommand : DbCommand
         {
             private readonly DbDataReader _reader;
 
@@ -91,10 +98,15 @@ namespace KayanHRAttendanceService.Tests
             protected override DbParameterCollection DbParameterCollection => new FakeDbParameterCollection();
             protected override DbTransaction DbTransaction { get; set; }
 
-            public override void Cancel() { }
+            public override void Cancel()
+            { }
+
             public override int ExecuteNonQuery() => 0;
+
             public override object ExecuteScalar() => null;
-            public override void Prepare() { }
+
+            public override void Prepare()
+            { }
 
             protected override DbParameter CreateDbParameter() => null;
 
@@ -107,9 +119,10 @@ namespace KayanHRAttendanceService.Tests
             }
         }
 
-        class FakeDbDataReader : DbDataReader
+        private class FakeDbDataReader : DbDataReader
         {
             private int _index = -1;
+
             private readonly List<Dictionary<string, object>> _rows = new()
 {
     new Dictionary<string, object>
@@ -134,8 +147,8 @@ namespace KayanHRAttendanceService.Tests
     }
 };
 
-
             public override bool Read() => ++_index < _rows.Count;
+
             public override Task<bool> ReadAsync(System.Threading.CancellationToken cancellationToken) => Task.FromResult(Read());
 
             public override string GetString(int ordinal)
@@ -151,9 +164,6 @@ namespace KayanHRAttendanceService.Tests
 
                 return value?.ToString() ?? string.Empty;
             }
-
-
-
 
             public override int GetOrdinal(string name)
             {
@@ -196,10 +206,7 @@ namespace KayanHRAttendanceService.Tests
                     "TId" => value,
                     _ => value
                 };
-
-
             }
-
 
             public override DateTime GetDateTime(int ordinal)
             {
@@ -214,10 +221,13 @@ namespace KayanHRAttendanceService.Tests
 
             public override bool HasRows => true;
             public override int FieldCount => 7;
+
             public override bool IsDBNull(int ordinal) => false;
+
             public override IEnumerator<object> GetEnumerator() => throw new NotImplementedException();
 
             #region NotImplemented
+
             public override int Depth => throw new NotImplementedException();
             public override bool IsClosed => false;
             public override int RecordsAffected => throw new NotImplementedException();
@@ -225,14 +235,23 @@ namespace KayanHRAttendanceService.Tests
             public override object this[int ordinal] => GetValue(ordinal);
 
             public override bool NextResult() => false;
+
             public override bool GetBoolean(int ordinal) => throw new NotImplementedException();
+
             public override byte GetByte(int ordinal) => throw new NotImplementedException();
+
             public override long GetBytes(int ordinal, long dataOffset, byte[]? buffer, int bufferOffset, int length) => throw new NotImplementedException();
+
             public override char GetChar(int ordinal) => throw new NotImplementedException();
+
             public override long GetChars(int ordinal, long dataOffset, char[]? buffer, int bufferOffset, int length) => throw new NotImplementedException();
+
             public override string GetDataTypeName(int ordinal) => throw new NotImplementedException();
+
             public override decimal GetDecimal(int ordinal) => throw new NotImplementedException();
+
             public override double GetDouble(int ordinal) => throw new NotImplementedException();
+
             public override Type GetFieldType(int ordinal)
             {
                 return ordinal switch
@@ -249,35 +268,58 @@ namespace KayanHRAttendanceService.Tests
             }
 
             public override float GetFloat(int ordinal) => throw new NotImplementedException();
+
             public override Guid GetGuid(int ordinal) => throw new NotImplementedException();
+
             public override short GetInt16(int ordinal) => throw new NotImplementedException();
+
             public override long GetInt64(int ordinal) => throw new NotImplementedException();
+
             public override int GetValues(object[] values) => throw new NotImplementedException();
-            #endregion
+
+            #endregion NotImplemented
         }
 
-        class FakeDbParameterCollection : DbParameterCollection
+        private class FakeDbParameterCollection : DbParameterCollection
         {
             private readonly List<DbParameter> _parameters = new();
 
             public override int Count => _parameters.Count;
             public override object SyncRoot => new object();
-            public override int Add(object value) { _parameters.Add((DbParameter)value); return _parameters.Count - 1; }
+
+            public override int Add(object value)
+            { _parameters.Add((DbParameter)value); return _parameters.Count - 1; }
+
             public override void AddRange(Array values) => throw new NotImplementedException();
+
             public override void Clear() => _parameters.Clear();
+
             public override bool Contains(string value) => throw new NotImplementedException();
+
             public override bool Contains(object value) => _parameters.Contains((DbParameter)value);
+
             public override void CopyTo(Array array, int index) => throw new NotImplementedException();
+
             public override IEnumerator GetEnumerator() => _parameters.GetEnumerator();
+
             public override int IndexOf(string parameterName) => throw new NotImplementedException();
+
             public override int IndexOf(object value) => _parameters.IndexOf((DbParameter)value);
+
             public override void Insert(int index, object value) => _parameters.Insert(index, (DbParameter)value);
+
             public override void Remove(object value) => _parameters.Remove((DbParameter)value);
+
             public override void RemoveAt(string parameterName) => throw new NotImplementedException();
+
             public override void RemoveAt(int index) => _parameters.RemoveAt(index);
+
             protected override DbParameter GetParameter(string parameterName) => throw new NotImplementedException();
+
             protected override DbParameter GetParameter(int index) => (DbParameter)_parameters[index];
+
             protected override void SetParameter(string parameterName, DbParameter value) => throw new NotImplementedException();
+
             protected override void SetParameter(int index, DbParameter value) => _parameters[index] = value;
         }
     }

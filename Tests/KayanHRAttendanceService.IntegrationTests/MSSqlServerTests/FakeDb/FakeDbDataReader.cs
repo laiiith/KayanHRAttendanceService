@@ -1,6 +1,6 @@
-﻿using System.Collections;
+﻿using KayanHRAttendanceService.Domain.Entities.Sqlite;
+using System.Collections;
 using System.Data.Common;
-using KayanHRAttendanceService.Domain.Entities.Sqlite;
 
 namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests.FakeDb
 {
@@ -67,6 +67,7 @@ namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests.FakeDb
         };
 
         public override string GetString(int ordinal) => (string)GetValue(ordinal);
+
         public override bool IsDBNull(int ordinal) => GetValue(ordinal) == null;
 
         public override DateTime GetDateTime(int ordinal)
@@ -92,8 +93,8 @@ namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests.FakeDb
             };
         }
 
-
         public override IEnumerator GetEnumerator() => throw new NotImplementedException();
+
         public override bool NextResult() => false;
 
         public override int GetValues(object[] values)
@@ -129,6 +130,5 @@ namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests.FakeDb
         public override short GetInt16(int ordinal) => (short)GetValue(ordinal);
 
         public override long GetInt64(int ordinal) => (long)GetValue(ordinal);
-
     }
 }

@@ -4,47 +4,119 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace KayanHRAttendanceService.Application.Implementation.Services
+namespace KayanHRAttendanceService.Application.Implementation.Services;
+
+public class HttpService(IHttpClientFactory httpClientFactory) : IHttpService
 {
-    public class HttpService(IHttpClientFactory httpClientFactory) : IHttpService
+    private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
+
+    public async Task<ApiResponse<TResponse>> SendAsync<TResponse>(APIRequest apiRequest)
     {
-        private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
+        using var requestMessage = BuildHttpRequestMessage(apiRequest);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(apiRequest.TimeoutSeconds ?? 30));
 
-        public async Task<T> SendAsync<T>(APIRequest apiRequest, bool withBearer = true)
+        HttpResponseMessage response;
+        try
         {
-            using var requestMessage = new HttpRequestMessage(apiRequest.Method, apiRequest.Url);
+            response = await _httpClient.SendAsync(requestMessage, cts.Token);
+            var content = await response.Content.ReadAsStringAsync(cts.Token);
 
-            if (apiRequest.Data != null)
-            {
-                var json = JsonSerializer.Serialize(apiRequest.Data);
-                requestMessage.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            }
+            if (!response.IsSuccessStatusCode)
+                return ApiResponse<TResponse>.Fail($"HTTP {(int)response.StatusCode} {response.ReasonPhrase}: {content}", (int)response.StatusCode);
 
-            foreach (var header in apiRequest.CustomHeaders)
-            {
-                requestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value);
-            }
+            TResponse? deserialized = DeserializeResponse<TResponse>(content, apiRequest.ResponseContentType);
+            return ApiResponse<TResponse>.Success(deserialized!, (int)response.StatusCode);
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<TResponse>.Fail($"Exception: {ex.Message}", 500);
+        }
+    }
 
-            if (withBearer)
-            {
-                var token = GetToken();
-                if (!string.IsNullOrEmpty(token))
-                {
-                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-            }
+    private HttpRequestMessage BuildHttpRequestMessage(APIRequest apiRequest)
+    {
+        var url = AppendQueryParameters(apiRequest.Url, apiRequest.QueryParameters);
 
-            var response = await _httpClient.SendAsync(requestMessage);
-            response.EnsureSuccessStatusCode();
+        var request = new HttpRequestMessage
+        {
+            RequestUri = new Uri(url),
+            Method = apiRequest.Method
+        };
 
-            var responseContent = await response.Content.ReadAsStringAsync();
+        AddRequestContent(apiRequest, request);
+        AddRequestHeaders(apiRequest, request);
 
-            return JsonSerializer.Deserialize<T>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return request;
+    }
+
+    private string AppendQueryParameters(string baseUrl, Dictionary<string, string>? queryParams)
+    {
+        if (queryParams is null || !queryParams.Any())
+            return baseUrl;
+
+        var query = string.Join("&", queryParams.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+        var separator = baseUrl.Contains('?') ? "&" : "?";
+        return $"{baseUrl}{separator}{query}";
+    }
+
+    private void AddRequestContent(APIRequest apiRequest, HttpRequestMessage request)
+    {
+        if (apiRequest.Data is null)
+            return;
+
+        request.Content = apiRequest.RequestContentType switch
+        {
+            HttpServiceContentTypes.x_www_FormURLurlencoded => new FormUrlEncodedContent(apiRequest.Data.GetType().GetProperties().Select(p => new KeyValuePair<string, string>(p.Name, p.GetValue(apiRequest.Data)?.ToString() ?? ""))),
+            HttpServiceContentTypes.application_json => new StringContent(JsonSerializer.Serialize(apiRequest.Data), Encoding.UTF8, "application/json"),
+            HttpServiceContentTypes.text_plain => new StringContent(apiRequest.Data.ToString() ?? string.Empty, Encoding.UTF8, "text/plain"),
+            _ => throw new NotSupportedException($"Content type {apiRequest.RequestContentType} is not supported.")
+        };
+    }
+
+    private void AddRequestHeaders(APIRequest apiRequest, HttpRequestMessage request)
+    {
+        var contentType = GetMediaType(apiRequest.RequestContentType);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
+
+        if (!string.IsNullOrWhiteSpace(apiRequest.Token))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiRequest.Token);
         }
 
-        private string GetToken()
+        if (apiRequest.CustomHeaders != null)
         {
-            return "your-access-token";
+            foreach (var header in apiRequest.CustomHeaders)
+            {
+                request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+        }
+    }
+
+    private string GetMediaType(HttpServiceContentTypes type) => type switch
+    {
+        HttpServiceContentTypes.x_www_FormURLurlencoded => "application/x-www-form-urlencoded",
+        HttpServiceContentTypes.application_json => "application/json",
+        HttpServiceContentTypes.text_plain => "text/plain",
+        _ => "application/octet-stream"
+    };
+
+    private TResponse DeserializeResponse<TResponse>(string content, HttpServiceContentTypes? responseContentType)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return default!;
+
+        if (responseContentType == HttpServiceContentTypes.text_plain && typeof(TResponse) == typeof(string))
+        {
+            return (TResponse)(object)content;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<TResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new JsonException("Deserialization returned null.");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to deserialize the response content.", ex);
         }
     }
 }

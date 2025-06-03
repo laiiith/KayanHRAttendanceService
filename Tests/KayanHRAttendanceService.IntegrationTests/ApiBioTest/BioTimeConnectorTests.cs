@@ -1,5 +1,5 @@
 using KayanHRAttendanceService.Application.DTO;
-using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased.BioTime;
+using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased;
 using KayanHRAttendanceService.Application.Interfaces;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Services;
@@ -36,7 +36,6 @@ public class BioTimeConnectorTests
             UpdateProcedure = "UpdateSyncDate"
         });
 
-
         _connector = new BioTimeConnector(
             _httpServiceMock.Object,
             _settingsMock.Object,
@@ -54,7 +53,6 @@ public class BioTimeConnectorTests
         var token = await _connector.FetchAttendanceDataAsync(); // Indirect test
 
         _httpServiceMock.Verify(s => s.SendAsync<TokenDTO>(It.IsAny<APIRequest>(), true), Times.Once);
-
     }
 
     [Fact]

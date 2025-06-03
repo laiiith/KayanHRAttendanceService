@@ -1,8 +1,8 @@
-﻿using System.Data.Common;
-using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
+﻿using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 using KayanHRAttendanceService.Domain.Entities.General;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Data.Common;
 
 namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests
 {

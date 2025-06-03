@@ -30,5 +30,3 @@ public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger
 
     protected override string GetCreateTempTableSql() => "CREATE TEMP TABLE temp_tvp (tid INT, flag INT DEFAULT 1) ON COMMIT DROP";
 }
-
-

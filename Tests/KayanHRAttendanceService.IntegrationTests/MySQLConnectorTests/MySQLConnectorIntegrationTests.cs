@@ -1,10 +1,10 @@
-﻿using System.Data;
-using System.Data.Common;
-using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
+﻿using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Data;
+using System.Data.Common;
 
 namespace KayanHRAttendanceService.IntegrationTests.MySQLConnectorTests
 {
@@ -57,13 +57,13 @@ namespace KayanHRAttendanceService.IntegrationTests.MySQLConnectorTests
             return records;
         }
     }
-    class FakeDbConnection : DbConnection
+
+    internal class FakeDbConnection : DbConnection
     {
         private readonly DbCommand _command;
 
         public FakeDbConnection()
         {
-
         }
 
         public FakeDbConnection(DbCommand command)
@@ -108,7 +108,5 @@ namespace KayanHRAttendanceService.IntegrationTests.MySQLConnectorTests
 
             throw new InvalidOperationException("No command provided.");
         }
-
     }
-
 }
