@@ -1,4 +1,6 @@
-﻿using KayanHRAttendanceService.Application.Interfaces;
+﻿using KayanHRAttendanceService.Application.DTO;
+using KayanHRAttendanceService.Application.Interfaces;
+using KayanHRAttendanceService.Application.Interfaces.Data;
 using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Services;
@@ -6,168 +8,123 @@ using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Globalization;
-using System.Text.Json;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased;
 
-public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSettings> settings, ILogger<BioStarConnector> logger) : IAttendanceConnector
+public class BioStarConnector(IHttpService httpService, IUnitOfWork unitOfWork, IOptions<IntegrationSettings> settingsOptions, ILogger<BioStarConnector> logger) : ApiBased(unitOfWork, settingsOptions), IAttendanceConnector
 {
+    private readonly IntegrationSettings _settings = settingsOptions.Value;
+
+    private readonly string _sessionHeaderKey = "bs-session-id";
+
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
-        logger.LogInformation("Fetching attendance data from BioStar from {Start} to {End}", settings.Value.StartDate, settings.Value.EndDate);
+        logger.LogInformation("Fetching attendance data from BioStar from {Start} to {End}", _settings.StartDate, _settings.EndDate);
 
-        if (!int.TryParse(settings.Value.PageSize, out int pageSize))
-        {
-            logger.LogError("Invalid PageSize value: {PageSize}", settings.Value.PageSize);
-            throw new Exception("Invalid PageSize value in settings.");
-        }
+        var sessionId = await GetSessionIdAsync();
+
+        if (string.IsNullOrWhiteSpace(sessionId))
+            return [];
+
+        var fromTimeStr = await DetermineStartTimeAsync();
+        var fromTime = DateTime.Parse(fromTimeStr, null, DateTimeStyles.AdjustToUniversal);
 
         var records = new List<AttendanceRecord>();
 
-        string fromDate = settings.Value.StartDate!;
-        string toDate = settings.Value.EndDate!;
-        string sessionId = await AuthenticateAsync();
-
-        int page = 0;
         while (true)
         {
-            var batch = await RequestBatchAsync(sessionId, fromDate, toDate, page, pageSize);
+            var batch = await FetchAttendanceBatchAsync(sessionId, fromTime);
+
             if (batch is null || batch.Count == 0)
-            {
-                logger.LogInformation("No more data found. Stopping at page {Page}", page);
                 break;
-            }
 
             foreach (var item in batch)
             {
-                string? functionCode = null;
+                var punchTime = item.Datetime;
 
-                if (item.TryGetProperty("event_type_id", out var eventType) &&
-                    eventType.TryGetProperty("code", out var codeProp))
-                {
-                    functionCode = codeProp.GetString();
-                }
-                else if (item.TryGetProperty("tna_key", out var tnaKey))
-                {
-                    functionCode = tnaKey.GetString();
-                }
+                if (string.IsNullOrEmpty(punchTime))
+                    continue;
 
-                string employeeCode = string.Empty;
-                if (item.TryGetProperty("user_id", out var userIdProp) &&
-                    userIdProp.TryGetProperty("user_id", out var userCodeProp))
-                {
-                    employeeCode = userCodeProp.GetString() ?? string.Empty;
-                }
-
-                string machineName = string.Empty;
-                if (item.TryGetProperty("device_id", out var deviceIdProp) &&
-                    deviceIdProp.TryGetProperty("name", out var deviceNameProp))
-                {
-                    machineName = deviceNameProp.GetString() ?? string.Empty;
-                }
+                var function = item.Event_Type_Id?.Code ?? item.Tna_Key;
 
                 records.Add(new AttendanceRecord
                 {
-                    TId = item.GetProperty("index").ToString(),
-                    EmployeeCode = employeeCode.Trim(),
-                    PunchTime = item.GetProperty("datetime").GetString() ?? string.Empty,
-                    Function = functionCode?.Trim() ?? string.Empty,
-                    MachineName = machineName.Trim(),
-                    MachineSerialNo = string.Empty // Not provided in API
+                    TId = item.Index.ToString() ?? "",
+                    EmployeeCode = item.User_Id?.User_Id ?? "",
+                    PunchTime = punchTime ?? "",
+                    Function = MapFunction(function),
+                    MachineName = item.Device_Id?.Name ?? "",
                 });
 
-                logger.LogDebug("Fetched Punch: {Tid}", item.GetProperty("index").ToString());
+                logger.LogInformation("Fetched punch at {PunchTime}", punchTime);
             }
 
-            if (batch.Count < pageSize)
+            if (batch.Count < int.Parse(_settings.PageSize))
                 break;
 
-            fromDate = batch.Last().GetProperty("datetime").GetString() ?? fromDate;
-            page++;
+            fromTime = DateTime.Parse(batch.Last().Datetime ?? fromTime.ToString("O"));
         }
 
-        logger.LogInformation("Fetched {Count} attendance records", records.Count);
         return records;
     }
 
-    private async Task<string> AuthenticateAsync()
+    private async Task<List<BioStarEventDTO>?> FetchAttendanceBatchAsync(string sessionId, DateTime fromTime)
     {
+        var isoDate = fromTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
         var payload = new
-        {
-            User = new
-            {
-                login_id = settings.Value.Username,
-                password = settings.Value.Password
-            }
-        };
-
-        var response = await httpService.SendAsync<JsonElement>(new APIRequest
-        {
-            Method = HttpMethod.Post,
-            Url = $"{settings.Value.Server}/api/login",
-            Data = payload
-        });
-
-        if (response.Data.ValueKind == JsonValueKind.Object &&
-            response.Data.TryGetProperty("SessionID", out var sessionIdProp) &&
-            sessionIdProp.ValueKind == JsonValueKind.String)
-        {
-            return sessionIdProp.GetString()!;
-        }
-
-        logger.LogError("Authentication failed: SessionID not found.");
-        throw new Exception("Authentication failed.");
-    }
-
-    private async Task<List<JsonElement>> RequestBatchAsync(string sessionId, string fromDate, string toDate, int page, int pageSize)
-    {
-        int offset = page * pageSize;
-
-        if (!DateTime.TryParse(fromDate, out var parsedStart))
-        {
-            logger.LogError("Invalid fromDate format: {FromDate}", fromDate);
-            throw new Exception("Invalid fromDate format.");
-        }
-
-        string isoStart = parsedStart.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-
-        var body = new
         {
             Query = new
             {
-                limit = pageSize,
-                offset,
-                conditions = new object[]
-                {
-                    new { column = "datetime", @operator = 5, values = new[] { isoStart } },
-                },
-                orders = new[]
-                {
-                    new { column = "datetime", descending = false }
-                }
+                limit = _settings.PageSize,
+                conditions = new object[] { new { column = "datetime", @operator = 5, values = new[] { isoDate } }, new { column = "user_id", @operator = 1, values = new[] { new { user_id = string.Empty } } } },
+                orders = new[] { new { column = "datetime", descending = false } }
             }
         };
 
-        var response = await httpService.SendAsync<JsonElement>(new APIRequest
+        var response = await httpService.SendAsync<BioStarEventSearchResponseDTO>(new APIRequest
         {
             Method = HttpMethod.Post,
-            Url = $"{settings.Value.Server}/api/events/search",
-            Data = body,
-            CustomHeaders = new Dictionary<string, string>
-            {
-                { "bs-session-id", sessionId }
-            }
+            Url = $"{_settings.Server}/api/events/search",
+            Data = payload,
+            RequestContentType = HttpServiceContentTypes.application_json,
+            ResponseContentType = HttpServiceContentTypes.application_json,
+            CustomHeaders = new Dictionary<string, string> { { _sessionHeaderKey, sessionId } }
         });
 
-        if (response.Data.ValueKind == JsonValueKind.Object &&
-            response.Data.TryGetProperty("EventCollection", out var eventCollection) &&
-            eventCollection.TryGetProperty("rows", out var rows) &&
-            rows.ValueKind == JsonValueKind.Array)
+        if (!response.IsSuccess)
         {
-            return rows.EnumerateArray().ToList();
+            logger.LogError("Failed to fetch events: HTTP {StatusCode} - {Error}", response.StatusCode, response.ErrorMessage);
+            return null;
         }
 
-        logger.LogWarning("No rows returned from BioStar search.");
-        return [];
+        return response.Data?.EventCollection.Rows;
+    }
+
+    private async Task<string?> GetSessionIdAsync()
+    {
+        var response = await httpService.SendAsync<object>(new APIRequest
+        {
+            Method = HttpMethod.Post,
+            Url = $"{_settings.Server}/api/login",
+            Data = new { User = new { login_id = _settings.Username, password = _settings.Password } },
+            RequestContentType = HttpServiceContentTypes.application_json,
+            ResponseContentType = HttpServiceContentTypes.application_json
+        });
+
+        if (!response.IsSuccess)
+        {
+            logger.LogError("Authentication failed: HTTP {StatusCode}. Error: {Error}", response.StatusCode, response.ErrorMessage ?? "Unknown error");
+            return null;
+        }
+
+        if (!response.Headers.TryGetValue(_sessionHeaderKey, out var sessionId) || string.IsNullOrWhiteSpace(sessionId))
+        {
+            logger.LogError("Authentication failed: 'bs-session-id' header missing in response.");
+            return null;
+        }
+
+        logger.LogInformation("Successfully authenticated and retrieved session ID.");
+        return sessionId;
     }
 }

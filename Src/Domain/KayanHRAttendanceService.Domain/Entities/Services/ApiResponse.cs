@@ -6,6 +6,7 @@ public class ApiResponse<T>
     public T? Data { get; set; }
     public string? ErrorMessage { get; set; }
     public int StatusCode { get; set; }
+    public Dictionary<string, string> Headers { get; private set; } = new();
 
     public static ApiResponse<T> Success(T data, int statusCode = 200) => new()
     {

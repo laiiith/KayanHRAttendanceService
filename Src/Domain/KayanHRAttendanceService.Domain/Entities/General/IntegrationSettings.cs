@@ -13,4 +13,17 @@ public class IntegrationSettings
     public string UpdateProcedure { get; set; }
     public string GetDataProcedure { get; set; }
     public bool DynamicDate { get; set; }
+    public FunctionMapping Function_Mapping { get; set; }
+}
+
+public class FunctionMapping
+{
+    public string Attendance_In { get; set; }
+    public string Attendance_Out { get; set; }
+    public string Break_In { get; set; }
+    public string Break_Out { get; set; }
+    public string Permission_In { get; set; }
+    public string Permission_Out { get; set; }
+    public string Overtime_In { get; set; }
+    public string Overtime_Out { get; set; }
 }
