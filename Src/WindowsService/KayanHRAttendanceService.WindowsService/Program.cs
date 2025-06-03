@@ -75,8 +75,7 @@ class Program
                 services.Configure<IntegrationSettings>(config.GetSection("Settings"));
                 var typeID = config.GetSection("Settings").Get<IntegrationSettings>().Type;
 
-                var basePath = Path.Combine(AppContext.BaseDirectory, "AppData");
-                var dbDirectory = Path.Combine(basePath, "Database");
+                var dbDirectory = Path.Combine(AppContext.BaseDirectory, "Database");
                 if (!Directory.Exists(dbDirectory))
                 {
                     Directory.CreateDirectory(dbDirectory);
