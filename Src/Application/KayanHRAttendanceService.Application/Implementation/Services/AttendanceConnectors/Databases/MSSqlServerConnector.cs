@@ -1,12 +1,12 @@
-﻿using System.Data;
-using System.Data.Common;
-using Dapper;
+﻿using Dapper;
 using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Data;
+using System.Data.Common;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
@@ -16,12 +16,10 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogge
     {
         using var dbConnection = await CreateDbConnection();
 
-        var data = await dbConnection.QueryAsync<AttendanceRecord>(
-            settings.Value.GetDataProcedure,
-            commandType: CommandType.StoredProcedure);
+        var data = await dbConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: CommandType.StoredProcedure);
 
         LogRecords(data);
-        return [.. data];
+        return data.AsList();
     }
 
     protected override async Task<DbConnection> CreateDbConnection()
