@@ -16,7 +16,7 @@ public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
 
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
-        logger.LogInformation("Fetching attendance data from Biotime from {Start} to {End}", _settings.StartDate, _settings.EndDate);
+        logger.LogInformation("Fetching attendance data from Biotime from {Start} to {End}", _settings.Integration.StartDate, _settings.Integration.EndDate);
 
         var token = await GetTokenAsync();
 
@@ -54,15 +54,15 @@ public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
     {
         var response = await httpService.SendAsync<BioTimeResponseDTO>(new APIRequest
         {
-            Url = $"{_settings.Server}/iclock/api/transactions/",
+            Url = $"{_settings.Integration.Server}/iclock/api/transactions/",
             Method = HttpMethod.Get,
             Token = token,
             QueryParameters = new Dictionary<string, string>
                 {
                     { "page", page.ToString() },
-                    { "page_size", _settings.PageSize },
+                    { "page_size", _settings.Integration.PageSize },
                     { "start_time", startTime },
-                    { "end_time", _settings.EndDate },
+                    { "end_time", _settings.Integration.EndDate },
                 },
             RequestContentType = HttpServiceContentTypes.application_json,
             ResponseContentType = HttpServiceContentTypes.application_json
@@ -96,11 +96,11 @@ public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
         var response = await httpService.SendAsync<TokenDTO>(new APIRequest
         {
             Method = HttpMethod.Post,
-            Url = $"{_settings.Server}/jwt-api-token-auth/",
+            Url = $"{_settings.Integration.Server}/jwt-api-token-auth/",
             Data = new
             {
-                username = _settings.Username,
-                password = _settings.Password
+                username = _settings.Integration.Username,
+                password = _settings.Integration.Password
             },
             RequestContentType = HttpServiceContentTypes.application_json,
             ResponseContentType = HttpServiceContentTypes.application_json

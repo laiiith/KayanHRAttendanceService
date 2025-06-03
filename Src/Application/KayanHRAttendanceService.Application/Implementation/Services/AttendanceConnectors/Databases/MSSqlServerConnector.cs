@@ -10,13 +10,20 @@ using System.Data.Common;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
-public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogger<MSSqlServerConnector> logger) : DatabaseAttendanceConnector<MSSqlServerConnector>(logger), IAttendanceConnector
+public class MSSqlServerConnector(IOptions<IntegrationSettings> settingsOptions, ILogger<MSSqlServerConnector> logger) : DatabaseAttendanceConnector<MSSqlServerConnector>(logger), IAttendanceConnector
 {
+    private readonly IntegrationSettings _settings = settingsOptions.Value;
+
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
+        if (string.IsNullOrEmpty(_settings.Integration.FetchDataProcedure) || string.IsNullOrEmpty(_settings.Integration.ConnectionString))
+        {
+            logger.LogWarning("FetchDataProcedure or ConnectionString is Empty");
+            return [];
+        }
         using var dbConnection = await CreateDbConnection();
 
-        var data = await dbConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: CommandType.StoredProcedure);
+        var data = await dbConnection.QueryAsync<AttendanceRecord>(_settings.Integration.FetchDataProcedure, commandType: CommandType.StoredProcedure);
 
         LogRecords(data);
         return data.AsList();
@@ -24,7 +31,7 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogge
 
     protected override async Task<DbConnection> CreateDbConnection()
     {
-        var connection = new SqlConnection(settings.Value.ConnectionString);
+        var connection = new SqlConnection(_settings.Integration.ConnectionString);
         await connection.OpenAsync();
         return connection;
     }

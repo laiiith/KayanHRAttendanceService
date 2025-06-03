@@ -14,6 +14,17 @@
     <None Remove="AppData\attendance.db" />
   </ItemGroup>
 
+	<ItemGroup> 
+		<Content Include="AppData\appsettings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+ 
+		<Content Include="AppData\appsettings.*.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<DependentUpon>appsettings.json</DependentUpon>
+		</Content>
+	</ItemGroup>
+	
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.5">

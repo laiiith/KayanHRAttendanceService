@@ -9,19 +9,26 @@ using System.Data.Common;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
-public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger<PostgreSqlConnector> logger) : DatabaseAttendanceConnector<PostgreSqlConnector>(logger), IAttendanceConnector
+public class PostgreSqlConnector(IOptions<IntegrationSettings> settingsOptions, ILogger<PostgreSqlConnector> logger) : DatabaseAttendanceConnector<PostgreSqlConnector>(logger), IAttendanceConnector
 {
+    private readonly IntegrationSettings _settings = settingsOptions.Value;
+
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
+        if (string.IsNullOrEmpty(_settings.Integration.FetchDataProcedure) || string.IsNullOrEmpty(_settings.Integration.ConnectionString))
+        {
+            logger.LogWarning("FetchDataProcedure or ConnectionString is Empty");
+            return [];
+        }
         using var sqlConnection = await CreateDbConnection();
-        var data = await sqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
+        var data = await sqlConnection.QueryAsync<AttendanceRecord>(_settings.Integration.FetchDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
         LogRecords(data);
         return data.AsList();
     }
 
     protected override async Task<DbConnection> CreateDbConnection()
     {
-        var NpgsqlConnection = new NpgsqlConnection(settings.Value.ConnectionString);
+        var NpgsqlConnection = new NpgsqlConnection(_settings.Integration.ConnectionString);
         await NpgsqlConnection.OpenAsync();
         return NpgsqlConnection;
     }

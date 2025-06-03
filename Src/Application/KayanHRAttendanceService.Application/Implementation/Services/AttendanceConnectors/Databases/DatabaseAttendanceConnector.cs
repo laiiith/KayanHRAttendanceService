@@ -9,6 +9,7 @@ namespace KayanHRAttendanceService.Application.Implementation.Services.Attendanc
 
 public abstract class DatabaseAttendanceConnector<T>(ILogger<T> logger) where T : class
 {
+
     protected abstract Task<DbConnection> CreateDbConnection();
 
     protected void AddDatabaseParameters(SqlCommand command, List<SqlParameter> sqlParameters)
