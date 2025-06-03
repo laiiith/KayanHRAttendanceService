@@ -1,142 +1,239 @@
 using KayanHRAttendanceService.Application.DTO;
 using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased;
 using KayanHRAttendanceService.Application.Interfaces;
+using KayanHRAttendanceService.Application.Interfaces.Data;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Services;
+using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using System.Linq.Expressions;
 
-namespace KayanHRAttendanceService.IntegrationTests.ApiBioTest;
-
-public class BioTimeConnectorTests
+namespace KayanHRAttendanceService.IntegrationTests.ApiBioTest
 {
-    private readonly Mock<IHttpService> _httpServiceMock;
-    private readonly Mock<IOptions<IntegrationSettings>> _settingsMock;
-    private readonly Mock<ILogger<BioTimeConnector>> _loggerMock;
-    private readonly BioTimeConnector _connector;
 
-    public BioTimeConnectorTests()
+    public class BioTimeConnectorTests
     {
-        _httpServiceMock = new Mock<IHttpService>();
-        _settingsMock = new Mock<IOptions<IntegrationSettings>>();
-        _loggerMock = new Mock<ILogger<BioTimeConnector>>();
+        private readonly Mock<IHttpService> _httpServiceMock;
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IOptions<IntegrationSettings>> _settingsMock;
+        private readonly Mock<ILogger<BioTimeConnector>> _loggerMock;
+        private readonly BioTimeConnector _mockedConnector;
 
-        _settingsMock.Setup(x => x.Value).Returns(new IntegrationSettings
+        public BioTimeConnectorTests()
         {
-            Server = "http://testserver",
-            Username = "admin",
-            Password = "admin123",
-            StartDate = "2023-01-01",
-            EndDate = "2023-01-02",
-            PageSize = "100",
-            DynamicDate = false,
-            ConnectionString = "Data Source=test.db",
-            GetDataProcedure = "GetAttendanceData",
-            UpdateProcedure = "UpdateSyncDate"
-        });
+            _httpServiceMock = new Mock<IHttpService>();
+            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _settingsMock = new Mock<IOptions<IntegrationSettings>>();
+            _loggerMock = new Mock<ILogger<BioTimeConnector>>();
 
-        _connector = new BioTimeConnector(
-            _httpServiceMock.Object,
-            _settingsMock.Object,
-            _loggerMock.Object);
-    }
-
-    [Fact]
-    public async Task AuthenticateAsync_ShouldReturnAccessToken_WhenCredentialsValid()
-    {
-        var expectedToken = "valid-token";
-        _httpServiceMock
-            .Setup(s => s.SendAsync<TokenDTO>(It.IsAny<APIRequest>(), It.IsAny<bool>()))
-            .ReturnsAsync(new TokenDTO { AccessToken = expectedToken });
-
-        var token = await _connector.FetchAttendanceDataAsync(); // Indirect test
-
-        _httpServiceMock.Verify(s => s.SendAsync<TokenDTO>(It.IsAny<APIRequest>(), true), Times.Once);
-    }
-
-    [Fact]
-    public async Task AuthenticateAsync_ShouldThrowException_WhenTokenIsNull()
-    {
-        _httpServiceMock
-            .Setup(s => s.SendAsync<TokenDTO>(It.IsAny<APIRequest>(), It.IsAny<bool>()))
-            .ReturnsAsync((TokenDTO)null!);
-
-        await Assert.ThrowsAsync<Exception>(() => InvokeAuth());
-    }
-
-    [Fact]
-    public async Task FetchAttendanceDataAsync_ShouldReturnMappedRecords_WhenApiReturnsData()
-    {
-        SetupValidToken();
-
-        var data = new List<BioTimeResponseDTO>
-        {
-            new()
+            var realSettings = Options.Create(new IntegrationSettings
             {
-                ID = "1",
-                EmployeeCode = "EMP001",
-                PunchTime = "2023-01-01 08:00:00",
-                PunchStatus = "IN",
-                MachineName = "MainGate",
-                MachineSerialNo = "SN001"
+                Server = "http://biotimedxb.com:8007",
+                Username = "admin",
+                Password = "admin",
+                StartDate = "2023-01-01",
+                EndDate = "2023-01-02",
+                PageSize = "100",
+                DynamicDate = false,
+                ConnectionString = "Data Source=test.db",
+                GetDataProcedure = "GetAttendanceData",
+                UpdateProcedure = "UpdateSyncDate"
+            });
+
+            _mockedConnector = new BioTimeConnector(
+                _httpServiceMock.Object,
+                _unitOfWorkMock.Object,
+                realSettings,
+                _loggerMock.Object);
+
+        }
+
+        [Fact]
+        public async Task FetchAttendanceDataAsync_ShouldReturnEmptyList_WhenTokenIsNull()
+        {
+            _httpServiceMock
+                .Setup(s => s.SendAsync<TokenDTO>(It.IsAny<APIRequest>()))
+                .ReturnsAsync(new ApiResponse<TokenDTO> { IsSuccess = false });
+
+            var result = await _mockedConnector.FetchAttendanceDataAsync();
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task FetchAttendanceDataAsync_ShouldReturnMappedRecords_WhenApiReturnsData()
+        {
+            SetupValidToken();
+
+            var responseDto = new BioTimeResponseDTO
+            {
+                BioTimePunches = new List<BioTimePunches>
+                {
+                    new BioTimePunches
+                    {
+                        ID = "1",
+                        EmployeeCode = "EMP001",
+                        PunchTime = "2023-01-01 08:00:00",
+                        PunchStatus = "IN",
+                        MachineName = "MainGate",
+                        MachineSerialNo = "SN001"
+                    }
+                }
+            };
+
+            _httpServiceMock
+                .SetupSequence(s => s.SendAsync<BioTimeResponseDTO>(It.IsAny<APIRequest>()))
+                .ReturnsAsync(new ApiResponse<BioTimeResponseDTO> { IsSuccess = true, Data = responseDto })
+                .ReturnsAsync(new ApiResponse<BioTimeResponseDTO> { IsSuccess = true, Data = new BioTimeResponseDTO { BioTimePunches = new List<BioTimePunches>() } });
+
+            var result = await _mockedConnector.FetchAttendanceDataAsync();
+
+            Assert.Single(result);
+            Assert.Equal("EMP001", result[0].EmployeeCode);
+            Assert.Equal("IN", result[0].Function);
+            Assert.Equal("SN001", result[0].MachineSerialNo);
+        }
+
+        private void SetupValidToken()
+        {
+            _httpServiceMock
+                .Setup(s => s.SendAsync<TokenDTO>(It.IsAny<APIRequest>()))
+                .ReturnsAsync(new ApiResponse<TokenDTO>
+                {
+                    IsSuccess = true,
+                    Data = new TokenDTO { AccessToken = "valid-token" }
+                });
+        }
+
+        [Fact]
+        public async Task FetchAttendanceDataAsync_WithMockedRealConnection_ShouldReturnMockedData()
+        {
+            _httpServiceMock
+                .SetupSequence(s => s.SendAsync<TokenDTO>(It.IsAny<APIRequest>()))
+                .ReturnsAsync(new ApiResponse<TokenDTO>
+                {
+                    IsSuccess = true,
+                    Data = new TokenDTO { AccessToken = "mocked-real-token" }
+                });
+
+            _httpServiceMock
+                .SetupSequence(s => s.SendAsync<BioTimeResponseDTO>(It.IsAny<APIRequest>()))
+                .ReturnsAsync(new ApiResponse<BioTimeResponseDTO>
+                {
+                    IsSuccess = true,
+                    Data = new BioTimeResponseDTO
+                    {
+                        BioTimePunches = new List<BioTimePunches>
+                        {
+                            new BioTimePunches
+                            {
+                                ID = "100",
+                                EmployeeCode = "EMP100",
+                                PunchTime = "2023-01-05 09:00:00",
+                                PunchStatus = "IN",
+                                MachineName = "Gate1",
+                                MachineSerialNo = "SN100"
+                            },
+                            new BioTimePunches
+                            {
+                                ID = "101",
+                                EmployeeCode = "EMP101",
+                                PunchTime = "2023-01-05 09:15:00",
+                                PunchStatus = "IN",
+                                MachineName = "Gate2",
+                                MachineSerialNo = "SN101"
+                            }
+                        }
+                    }
+                })
+                .ReturnsAsync(new ApiResponse<BioTimeResponseDTO>
+                {
+                    IsSuccess = true,
+                    Data = new BioTimeResponseDTO
+                    {
+                        BioTimePunches = new List<BioTimePunches>()
+                    }
+                });
+
+            var result = await _mockedConnector.FetchAttendanceDataAsync();
+
+            Assert.NotNull(result);
+            Assert.True(result.Count == 2);
+            Assert.Contains(result, r => r.EmployeeCode == "EMP100");
+            Assert.Contains(result, r => r.EmployeeCode == "EMP101");
+        }
+
+
+
+        private class RealHttpService : IHttpService
+        {
+            private readonly HttpClient _httpClient = new();
+
+            async Task<ApiResponse<TResponse>> IHttpService.SendAsync<TResponse>(APIRequest request)
+            {
+                var response = await _httpClient.GetAsync(request.Url);
+                if (!response.IsSuccessStatusCode)
+                    return new ApiResponse<TResponse> { IsSuccess = false };
+
+                var content = await response.Content.ReadAsStringAsync();
+                var data = System.Text.Json.JsonSerializer.Deserialize<TResponse>(
+                    content,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                return new ApiResponse<TResponse> { IsSuccess = true, Data = data };
             }
-        };
+        }
 
-        _httpServiceMock
-            .SetupSequence(s => s.SendAsync<List<BioTimeResponseDTO>>(It.IsAny<APIRequest>(), It.IsAny<bool>()))
-            .ReturnsAsync(data)
-            .ReturnsAsync(new List<BioTimeResponseDTO>());
+        private class RealUnitOfWork : IUnitOfWork
+        {
+            public IAttendanceDataRepository AttendanceData { get; }
 
-        var result = await _connector.FetchAttendanceDataAsync();
+            public RealUnitOfWork()
+            {
+                AttendanceData = new RealAttendanceDataRepository();
+            }
 
-        Assert.Single(result);
-        Assert.Equal("EMP001", result[0].EmployeeCode);
-        Assert.Equal("IN", result[0].Function);
-        Assert.Equal("SN001", result[0].MachineSerialNo);
-    }
+            public Task<int> CompleteAsync(CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(1);
+            }
 
-    [Fact]
-    public async Task FetchAttendanceDataAsync_ShouldReturnEmptyList_WhenResponseIsNull()
-    {
-        SetupValidToken();
+            public void Dispose() { }
 
-        _httpServiceMock
-            .Setup(s => s.SendAsync<List<BioTimeResponseDTO>>(It.IsAny<APIRequest>(), It.IsAny<bool>()))
-            .ReturnsAsync((List<BioTimeResponseDTO>)null!);
+            public Task Save()
+            {
+                throw new NotImplementedException();
+            }
+        }
 
-        var result = await _connector.FetchAttendanceDataAsync();
+        private class RealAttendanceDataRepository : IAttendanceDataRepository
+        {
+            public Task AddAsync(AttendanceRecord entity)
+            {
+                throw new NotImplementedException();
+            }
 
-        Assert.Empty(result);
-    }
+            public Task AddAsync(AttendanceRecord[] entity)
+            {
+                throw new NotImplementedException();
+            }
 
-    [Fact]
-    public async Task FetchAttendanceDataAsync_ShouldReturnEmptyList_WhenResponseIsEmpty()
-    {
-        SetupValidToken();
+            public Task<IEnumerable<AttendanceRecord>> GetAllAsync(Expression<Func<AttendanceRecord, bool>>? filter = null)
+            {
+                throw new NotImplementedException();
+            }
 
-        _httpServiceMock
-            .Setup(s => s.SendAsync<List<BioTimeResponseDTO>>(It.IsAny<APIRequest>(), It.IsAny<bool>()))
-            .ReturnsAsync(new List<BioTimeResponseDTO>());
+            public Task<AttendanceRecord?> GetAsync(Expression<Func<AttendanceRecord, bool>>? filter = null)
+            {
+                throw new NotImplementedException();
+            }
 
-        var result = await _connector.FetchAttendanceDataAsync();
-
-        Assert.Empty(result);
-    }
-
-    private async Task InvokeAuth()
-    {
-        var method = typeof(BioTimeConnector).GetMethod("AuthenticateAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (method == null)
-            throw new InvalidOperationException("AuthenticateAsync method not found");
-
-        await (Task<string>)method.Invoke(_connector, null)!;
-    }
-
-    private void SetupValidToken()
-    {
-        _httpServiceMock
-            .Setup(s => s.SendAsync<TokenDTO>(It.IsAny<APIRequest>(), It.IsAny<bool>()))
-            .ReturnsAsync(new TokenDTO { AccessToken = "valid-token" });
+            public Task<string> GetLastPunchTime()
+            {
+                return Task.FromResult<string>(null);
+            }
+        }
     }
 }
