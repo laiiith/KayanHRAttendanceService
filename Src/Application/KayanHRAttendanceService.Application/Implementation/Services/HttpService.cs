@@ -19,6 +19,13 @@ public class HttpService(IHttpClientFactory httpClientFactory) : IHttpService
         try
         {
             response = await _httpClient.SendAsync(requestMessage, cts.Token);
+
+            if (apiRequest.IncludeHeaders)
+            {
+                var headers = response.Headers.Concat(response.Content.Headers)
+                    .ToDictionary(h => h.Key, h => string.Join(",", h.Value));
+            }
+
             var content = await response.Content.ReadAsStringAsync(cts.Token);
 
             if (!response.IsSuccessStatusCode)

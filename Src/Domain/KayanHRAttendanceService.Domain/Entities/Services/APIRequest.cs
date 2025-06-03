@@ -11,6 +11,7 @@ public class APIRequest
     public HttpServiceContentTypes RequestContentType { get; set; } = HttpServiceContentTypes.application_json;
     public HttpServiceContentTypes? ResponseContentType { get; set; } = HttpServiceContentTypes.application_json;
     public int? TimeoutSeconds { get; set; }
+    public bool IncludeHeaders { get; set; }
 }
 
 public enum HttpServiceContentTypes

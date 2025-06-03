@@ -10,10 +10,14 @@ using Microsoft.Extensions.Options;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased;
 
-public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, IOptions<IntegrationSettings> settings, ILogger<BioTimeConnector> logger) : IAttendanceConnector
+public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, IOptions<IntegrationSettings> settingsOptions, ILogger<BioTimeConnector> logger) : ApiBased(unitOfWork, settingsOptions), IAttendanceConnector
 {
+    private readonly IntegrationSettings _settings = settingsOptions.Value;
+
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
+        logger.LogInformation("Fetching attendance data from Biotime from {Start} to {End}", _settings.StartDate, _settings.EndDate);
+
         var token = await GetTokenAsync();
 
         if (string.IsNullOrWhiteSpace(token))
@@ -50,15 +54,15 @@ public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
     {
         var response = await httpService.SendAsync<BioTimeResponseDTO>(new APIRequest
         {
-            Url = $"{settings.Value.Server}/iclock/api/transactions/",
+            Url = $"{_settings.Server}/iclock/api/transactions/",
             Method = HttpMethod.Get,
             Token = token,
             QueryParameters = new Dictionary<string, string>
                 {
                     { "page", page.ToString() },
-                    { "page_size", settings.Value.PageSize },
+                    { "page_size", _settings.PageSize },
                     { "start_time", startTime },
-                    { "end_time", settings.Value.EndDate },
+                    { "end_time", _settings.EndDate },
                 },
             RequestContentType = HttpServiceContentTypes.application_json,
             ResponseContentType = HttpServiceContentTypes.application_json
@@ -81,19 +85,10 @@ public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
             TId = r.ID ?? string.Empty,
             EmployeeCode = r.EmployeeCode ?? string.Empty,
             PunchTime = r.PunchTime ?? string.Empty,
-            Function = r.PunchStatus ?? string.Empty,
+            Function = MapFunction(r.PunchStatus),
             MachineName = r.MachineName ?? string.Empty,
             MachineSerialNo = r.MachineSerialNo ?? string.Empty
         });
-    }
-
-    private async Task<string> DetermineStartTimeAsync()
-    {
-        if (!settings.Value.DynamicDate)
-            return settings.Value.StartDate;
-
-        var lastPunchTime = await unitOfWork.AttendanceData.GetLastPunchTime();
-        return !string.IsNullOrWhiteSpace(lastPunchTime) ? lastPunchTime : settings.Value.StartDate;
     }
 
     private async Task<string?> GetTokenAsync()
@@ -101,11 +96,11 @@ public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
         var response = await httpService.SendAsync<TokenDTO>(new APIRequest
         {
             Method = HttpMethod.Post,
-            Url = $"{settings.Value.Server}/jwt-api-token-auth/",
+            Url = $"{_settings.Server}/jwt-api-token-auth/",
             Data = new
             {
-                username = settings.Value.Username,
-                password = settings.Value.Password
+                username = _settings.Username,
+                password = _settings.Password
             },
             RequestContentType = HttpServiceContentTypes.application_json,
             ResponseContentType = HttpServiceContentTypes.application_json
