@@ -1,11 +1,11 @@
-﻿using System.Data.Common;
-using Dapper;
+﻿using Dapper;
 using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using System.Data.Common;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
@@ -14,26 +14,9 @@ public class PostgreSqlConnector(IOptions<IntegrationSettings> settings, ILogger
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
         using var sqlConnection = await CreateDbConnection();
-
-        //if (sqlConnection is not NpgsqlConnection npgSqlConnection)
-        //    throw new InvalidOperationException("NpgsqlConnection Expected");
-
-        //var data = await npgSqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
-        //LogRecords(data);
-        //return data.AsList();
-
-
-        if (sqlConnection is DbConnection connection)
-        {
-            var data = await connection.QueryAsync<AttendanceRecord>(
-                settings.Value.GetDataProcedure,
-                commandType: System.Data.CommandType.StoredProcedure
-            );
-            LogRecords(data);
-            return data.AsList();
-        }
-
-        throw new InvalidOperationException("DbConnection Expected");
+        var data = await sqlConnection.QueryAsync<AttendanceRecord>(settings.Value.GetDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
+        LogRecords(data);
+        return data.AsList();
     }
 
     protected override async Task<DbConnection> CreateDbConnection()
