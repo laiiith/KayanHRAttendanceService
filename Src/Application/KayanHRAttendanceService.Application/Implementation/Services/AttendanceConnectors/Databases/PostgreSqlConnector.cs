@@ -9,7 +9,7 @@ using System.Data.Common;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
-public class PostgreSqlConnector(IOptions<IntegrationSettings> settingsOptions, ILogger<PostgreSqlConnector> logger) : DatabaseAttendanceConnector<PostgreSqlConnector>(logger), IAttendanceConnector
+public class PostgreSqlConnector(IOptions<IntegrationSettings> settingsOptions, ILogger<PostgreSqlConnector> logger) : DatabaseAttendanceConnector<PostgreSqlConnector>(settingsOptions, logger), IDbAttendanceConnector
 {
     private readonly IntegrationSettings _settings = settingsOptions.Value;
 

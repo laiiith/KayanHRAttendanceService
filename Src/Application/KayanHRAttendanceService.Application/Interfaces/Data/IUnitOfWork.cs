@@ -4,5 +4,5 @@ public interface IUnitOfWork
 {
     IAttendanceDataRepository AttendanceData { get; }
 
-    Task Save();
+    Task SaveChangesAsync();
 }

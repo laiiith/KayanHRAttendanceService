@@ -72,7 +72,7 @@ public class MSSqlServerConnectorTests
             new AttendanceRecord { TId = "2" }
         };
 
-        await connector.UpdateFlagForFetchedDataAsync(records, "UpdateFlags");
+        await connector.UpdateFlagForFetchedDataAsync(records);
 
         Assert.True(fakeConnection.ExecutedCommands.Count >= 3);
     }
@@ -82,7 +82,7 @@ public class MSSqlServerConnectorTests
     {
         var connector = CreateConnector();
 
-        await connector.UpdateFlagForFetchedDataAsync(new List<AttendanceRecord>(), "UpdateFlags");
+        await connector.UpdateFlagForFetchedDataAsync(new List<AttendanceRecord>());
 
         mockLogger.Verify(l => l.Log(
             LogLevel.Warning,

@@ -50,12 +50,13 @@ class Program
             .UseSerilog()
             .ConfigureAppConfiguration((context, config) =>
             {
-                var configs = context.Configuration;
-                var typeID = configs.GetSection("Settings").Get<IntegrationSettings>().Type;
-
-                config.SetBasePath(Path.Combine(AppContext.BaseDirectory, "AppData"));
+                var basePath = Path.Combine(AppContext.BaseDirectory, "AppData");
+                config.SetBasePath(basePath);
 
                 config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+                var tempConfig = config.Build();
+                var typeID = tempConfig.GetSection("Settings").Get<IntegrationSettings>()?.Type ?? 0;
 
                 switch (typeID)
                 {
@@ -70,6 +71,7 @@ class Program
             .ConfigureServices((context, services) =>
             {
                 var config = context.Configuration;
+
                 services.Configure<IntegrationSettings>(config.GetSection("Settings"));
                 var typeID = config.GetSection("Settings").Get<IntegrationSettings>().Type;
 
@@ -96,6 +98,7 @@ class Program
                 services.AddScoped<IAttendanceFetcherService, AttendanceFetcherService>();
                 services.AddScoped<IDataPusherService, DataPusherService>();
                 services.AddScoped<ISyncAttendanceData, SyncAttendanceData>();
+                services.AddScoped<IKayanConnectorService, KayanConnectorService>();
                 services.AddScoped<IHttpService, HttpService>();
                 services.AddHostedService<AttendanceWorker>();
                 services.AddHttpClient();

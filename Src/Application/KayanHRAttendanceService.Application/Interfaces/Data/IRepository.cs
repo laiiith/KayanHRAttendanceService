@@ -4,7 +4,7 @@ namespace KayanHRAttendanceService.Application.Interfaces.Data;
 
 public interface IRepository<T> where T : class
 {
-    Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null);
+    Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, int? take = null);
 
     Task<T?> GetAsync(Expression<Func<T, bool>>? filter = null);
 

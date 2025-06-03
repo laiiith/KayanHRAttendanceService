@@ -6,5 +6,5 @@ public class UnitOfWork(ApplicationDbContext.ApplicationDbContext dbContext) : I
 {
     public IAttendanceDataRepository AttendanceData => new AttendanceDataRepository(dbContext);
 
-    public async Task Save() => await dbContext.SaveChangesAsync();
+    public async Task SaveChangesAsync() => await dbContext.SaveChangesAsync();
 }

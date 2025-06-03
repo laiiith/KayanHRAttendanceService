@@ -10,7 +10,7 @@ using System.Data.Common;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
-public class MSSqlServerConnector(IOptions<IntegrationSettings> settingsOptions, ILogger<MSSqlServerConnector> logger) : DatabaseAttendanceConnector<MSSqlServerConnector>(logger), IAttendanceConnector
+public class MSSqlServerConnector(IOptions<IntegrationSettings> settingsOptions, ILogger<MSSqlServerConnector> logger) : DatabaseAttendanceConnector<MSSqlServerConnector>(settingsOptions, logger), IDbAttendanceConnector
 {
     private readonly IntegrationSettings _settings = settingsOptions.Value;
 

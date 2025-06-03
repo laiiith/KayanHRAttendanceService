@@ -3,11 +3,11 @@
 public class IntegrationSettings
 {
     public int Type { get; set; }
-    public string Interval { get; set; }
+    public int Interval { get; set; }
     public string APIBulkEndpoint { get; set; }
-    public string ClientKey { get; set; }
+    public string ClientID { get; set; }
     public string ClientSecret { get; set; }
-    public string BatchSize { get; set; }
+    public int BatchSize { get; set; }
     public bool Debug { get; set; }
     public bool DynamicDate { get; set; }
     public FunctionMapping FunctionMapping { get; set; }

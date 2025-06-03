@@ -18,13 +18,17 @@ public class Repository<T>(ApplicationDbContext.ApplicationDbContext dbContext) 
         await dbSet.AddRangeAsync(entity);
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null)
+    public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, int? take = null)
     {
         IQueryable<T> query = dbSet;
         if (filter is not null)
         {
             query = query.Where(filter);
         }
+
+        if (take.HasValue)
+            query = query.Take(take.Value);
+
         return await query.ToListAsync();
     }
 

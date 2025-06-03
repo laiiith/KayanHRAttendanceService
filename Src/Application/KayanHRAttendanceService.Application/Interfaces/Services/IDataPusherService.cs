@@ -2,4 +2,5 @@
 
 public interface IDataPusherService
 {
+    Task PushAsync();
 }

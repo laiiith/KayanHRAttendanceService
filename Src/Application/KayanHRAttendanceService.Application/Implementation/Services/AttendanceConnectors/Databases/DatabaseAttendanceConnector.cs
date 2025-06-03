@@ -1,25 +1,18 @@
 ﻿using Dapper;
+using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Data;
 using System.Data.Common;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
-public abstract class DatabaseAttendanceConnector<T>(ILogger<T> logger) where T : class
+public abstract class DatabaseAttendanceConnector<T>(IOptions<IntegrationSettings> settingsOptions, ILogger<T> logger) where T : class
 {
+    private readonly IntegrationSettings _settings = settingsOptions.Value;
 
     protected abstract Task<DbConnection> CreateDbConnection();
-
-    protected void AddDatabaseParameters(SqlCommand command, List<SqlParameter> sqlParameters)
-    {
-        command.Parameters.Clear();
-        foreach (SqlParameter sqlParameter in sqlParameters)
-        {
-            command.Parameters.Add(sqlParameter);
-        }
-    }
 
     protected void LogRecords(IEnumerable<AttendanceRecord> attendanceRecords)
     {
@@ -30,7 +23,7 @@ public abstract class DatabaseAttendanceConnector<T>(ILogger<T> logger) where T 
         }
     }
 
-    public async Task UpdateFlagForFetchedDataAsync(List<AttendanceRecord> records, string updateProcedure)
+    public async Task UpdateFlagForFetchedDataAsync(List<AttendanceRecord> records)
     {
         if (records == null || records.Count == 0)
         {
@@ -57,7 +50,7 @@ public abstract class DatabaseAttendanceConnector<T>(ILogger<T> logger) where T 
 
             await sqlConnection.ExecuteAsync(insertSql, insertParams, sqlTransaction);
 
-            await sqlConnection.ExecuteAsync(updateProcedure, commandType: CommandType.StoredProcedure, transaction: sqlTransaction);
+            await sqlConnection.ExecuteAsync(_settings.Integration.UpdateDataProcedure, commandType: CommandType.StoredProcedure, transaction: sqlTransaction);
 
             await sqlTransaction.CommitAsync();
         }
