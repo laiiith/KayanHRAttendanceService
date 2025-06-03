@@ -108,8 +108,8 @@ public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSett
             Data = payload
         });
 
-        if (response.ValueKind == JsonValueKind.Object &&
-            response.TryGetProperty("SessionID", out var sessionIdProp) &&
+        if (response.Data.ValueKind == JsonValueKind.Object &&
+            response.Data.TryGetProperty("SessionID", out var sessionIdProp) &&
             sessionIdProp.ValueKind == JsonValueKind.String)
         {
             return sessionIdProp.GetString()!;
@@ -159,8 +159,8 @@ public class BioStarConnector(IHttpService httpService, IOptions<IntegrationSett
             }
         });
 
-        if (response.ValueKind == JsonValueKind.Object &&
-            response.TryGetProperty("EventCollection", out var eventCollection) &&
+        if (response.Data.ValueKind == JsonValueKind.Object &&
+            response.Data.TryGetProperty("EventCollection", out var eventCollection) &&
             eventCollection.TryGetProperty("rows", out var rows) &&
             rows.ValueKind == JsonValueKind.Array)
         {
