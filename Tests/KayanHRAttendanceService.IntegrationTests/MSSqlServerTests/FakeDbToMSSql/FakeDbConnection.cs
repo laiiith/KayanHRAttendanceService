@@ -24,4 +24,5 @@ namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests.FakeDb
 
         public List<string> ExecutedCommands => _executedCommands;
     }
+
 }

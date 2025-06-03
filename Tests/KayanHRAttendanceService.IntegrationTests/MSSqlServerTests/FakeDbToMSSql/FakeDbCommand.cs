@@ -1,6 +1,6 @@
-﻿using System.Data;
+﻿using KayanHRAttendanceService.Domain.Entities.Sqlite;
+using System.Data;
 using System.Data.Common;
-using KayanHRAttendanceService.Domain.Entities.Sqlite;
 
 namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests.FakeDb
 {
