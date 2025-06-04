@@ -81,11 +81,11 @@ internal class Program
 
                 switch (typeID)
                 {
-                    case 1: services.AddSingleton<IAttendanceConnector, BioStarConnector>(); break;
-                    case 2: services.AddSingleton<IAttendanceConnector, BioTimeConnector>(); break;
-                    case 3: services.AddSingleton<IAttendanceConnector, MSSqlServerConnector>(); break;
-                    case 4: services.AddSingleton<IAttendanceConnector, PostgreSqlConnector>(); break;
-                    case 5: services.AddSingleton<IAttendanceConnector, MySQLConnector>(); break;
+                    case 1: services.AddScoped<IAttendanceConnector, BioStarConnector>(); break;
+                    case 2: services.AddScoped<IAttendanceConnector, BioTimeConnector>(); break;
+                    case 3: services.AddScoped<IAttendanceConnector, MSSqlServerConnector>(); break;
+                    case 4: services.AddScoped<IAttendanceConnector, PostgreSqlConnector>(); break;
+                    case 5: services.AddScoped<IAttendanceConnector, MySQLConnector>(); break;
                     default:
                         throw new InvalidOperationException("Unsupported integration type");
                 }

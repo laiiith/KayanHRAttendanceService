@@ -1,24 +1,26 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace KayanHRAttendanceService.Application.DTO;
 public record BioTimeResponseDTO
 {
-    [JsonProperty("data")]
+    [JsonPropertyName("data")]
     public List<BioTimePunches> BioTimePunches { get; set; }
+    [JsonPropertyName("next")]
+    public string NextUrl { get; set; }
 }
 
 public record BioTimePunches
 {
-    [JsonProperty("id")]
-    public string ID { get; set; }
-    [JsonProperty("emp_code")]
+    [JsonPropertyName("id")]
+    public int ID { get; set; }
+    [JsonPropertyName("emp_code")]
     public string EmployeeCode { get; set; }
-    [JsonProperty("punch_time")]
+    [JsonPropertyName("punch_time")]
     public string PunchTime { get; set; }
-    [JsonProperty("terminal_alias")]
+    [JsonPropertyName("terminal_alias")]
     public string MachineName { get; set; }
-    [JsonProperty("terminal_sn")]
+    [JsonPropertyName("terminal_sn")]
     public string MachineSerialNo { get; set; }
-    [JsonProperty("punch_state")]
+    [JsonPropertyName("punch_state")]
     public string PunchStatus { get; set; }
 }

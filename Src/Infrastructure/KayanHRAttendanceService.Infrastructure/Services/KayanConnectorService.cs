@@ -18,7 +18,7 @@ public class KayanConnectorService(IHttpService httpService, IOptions<Integratio
         var response = await httpService.SendAsync<KayanConnectorResponseDTO>(new Domain.Entities.Services.APIRequest
         {
             Url = _settings.APIBulkEndpoint,
-            CustomHeaders = new Dictionary<string, string> { { "client_id", _settings.ClientID }, { "client_secret", _settings.ClientSecret } },
+            CustomHeaders = new Dictionary<string, string> { { "clientID", _settings.ClientID }, { "ClientSecret", _settings.ClientSecret } },
             TimeoutSeconds = 30,
             Method = HttpMethod.Post,
             RequestContentType = Domain.Entities.Services.HttpServiceContentTypes.application_json,

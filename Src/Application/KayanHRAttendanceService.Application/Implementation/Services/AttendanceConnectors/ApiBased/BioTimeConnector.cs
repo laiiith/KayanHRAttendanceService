@@ -38,11 +38,16 @@ public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
 
         while (true)
         {
-            var records = await FetchPageAsync(token, page, startTime);
+            var (records, nextURL) = await FetchPageAsync(token, page, startTime);
+
             if (records == null || records.Count == 0)
                 break;
 
             allRecords.AddRange(records);
+
+            if (string.IsNullOrEmpty(nextURL))
+                break;
+
             page++;
         }
 
@@ -50,7 +55,7 @@ public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
         return allRecords;
     }
 
-    private async Task<List<AttendanceRecord>?> FetchPageAsync(string token, int page, string startTime)
+    private async Task<(List<AttendanceRecord>? records, string? nextURL)> FetchPageAsync(string token, int page, string startTime)
     {
         var response = await httpService.SendAsync<BioTimeResponseDTO>(new APIRequest
         {
@@ -71,24 +76,26 @@ public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
         if (!response.IsSuccess)
         {
             logger.LogError("Failed to fetch attendance data on page {Page}. Error: {Error}", page, response.ErrorMessage ?? "Unknown error");
-            return null;
+            return (null, null);
         }
 
         if (response.Data?.BioTimePunches == null || response.Data.BioTimePunches.Count == 0)
         {
             logger.LogInformation("No attendance data found on page {Page}.", page);
-            return [];
+            return ([], null);
         }
 
-        return response.Data.BioTimePunches.ConvertAll(r => new AttendanceRecord
+        var records = response.Data?.BioTimePunches?.ConvertAll(r => new AttendanceRecord
         {
-            TId = r.ID ?? string.Empty,
+            TId = r.ID.ToString() ?? string.Empty,
             EmployeeCode = r.EmployeeCode ?? string.Empty,
             PunchTime = r.PunchTime ?? string.Empty,
             Function = MapFunction(r.PunchStatus),
             MachineName = r.MachineName ?? string.Empty,
             MachineSerialNo = r.MachineSerialNo ?? string.Empty
-        });
+        }) ?? [];
+
+        return (records, response.Data.NextUrl);
     }
 
     private async Task<string?> GetTokenAsync()

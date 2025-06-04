@@ -20,10 +20,11 @@ public class HttpService(IHttpClientFactory httpClientFactory) : IHttpService
         {
             response = await _httpClient.SendAsync(requestMessage, cts.Token);
 
+            Dictionary<string, string>? headers = null;
             if (apiRequest.IncludeHeaders)
             {
-                var headers = response.Headers.Concat(response.Content.Headers)
-                    .ToDictionary(h => h.Key, h => string.Join(",", h.Value));
+                headers = response.Headers.Concat(response.Content.Headers)
+                     .ToDictionary(h => h.Key, h => string.Join(",", h.Value));
             }
 
             var content = await response.Content.ReadAsStringAsync(cts.Token);
@@ -32,7 +33,7 @@ public class HttpService(IHttpClientFactory httpClientFactory) : IHttpService
                 return ApiResponse<TResponse>.Fail($"HTTP {(int)response.StatusCode} {response.ReasonPhrase}: {content}", (int)response.StatusCode);
 
             TResponse? deserialized = DeserializeResponse<TResponse>(content, apiRequest.ResponseContentType);
-            return ApiResponse<TResponse>.Success(deserialized!, (int)response.StatusCode);
+            return ApiResponse<TResponse>.Success(deserialized!, headers ?? [], (int)response.StatusCode);
         }
         catch (Exception ex)
         {
@@ -119,7 +120,7 @@ public class HttpService(IHttpClientFactory httpClientFactory) : IHttpService
 
         try
         {
-            return JsonSerializer.Deserialize<TResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? throw new JsonException("Deserialization returned null.");
+            return JsonSerializer.Deserialize<TResponse>(content) ?? throw new JsonException("Deserialization returned null.");
         }
         catch (Exception ex)
         {

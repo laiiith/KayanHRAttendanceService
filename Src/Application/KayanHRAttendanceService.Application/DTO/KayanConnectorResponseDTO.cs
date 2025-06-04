@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace KayanHRAttendanceService.Application.DTO;
 
@@ -15,6 +15,6 @@ public class Response
 }
 public class Data
 {
-    [JsonProperty("lstpunches")]
+    [JsonPropertyName("lstpunches")]
     public List<KayanConnectorAttendanceDTO> ListPunches { get; set; }
 }

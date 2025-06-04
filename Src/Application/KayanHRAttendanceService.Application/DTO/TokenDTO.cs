@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace KayanHRAttendanceService.Application.DTO;
 public record TokenDTO
 {
-    [JsonProperty("token")]
+    [JsonPropertyName("token")]
     public string AccessToken { get; set; }
 }

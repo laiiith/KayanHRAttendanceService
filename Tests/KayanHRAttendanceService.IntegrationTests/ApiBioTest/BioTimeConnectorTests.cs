@@ -58,7 +58,7 @@ public class BioTimeConnectorTests
         {
             new BioTimePunches
             {
-                ID = "1",
+                ID =1,
                 EmployeeCode = "EMP001",
                 PunchTime = "2025-01-15 08:00:00",
                 PunchStatus = "0",

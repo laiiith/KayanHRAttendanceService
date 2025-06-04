@@ -109,7 +109,8 @@ public class BioStarConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
             Url = $"{_settings.Integration.Server}/api/login",
             Data = new { User = new { login_id = _settings.Integration.Username, password = _settings.Integration.Password } },
             RequestContentType = HttpServiceContentTypes.application_json,
-            ResponseContentType = HttpServiceContentTypes.application_json
+            ResponseContentType = HttpServiceContentTypes.application_json,
+            IncludeHeaders = true
         });
 
         if (!response.IsSuccess)

@@ -1,11 +1,14 @@
-﻿namespace KayanHRAttendanceService.Application.DTO;
+﻿using System.Text.Json.Serialization;
+
+namespace KayanHRAttendanceService.Application.DTO;
 public record BioStarEventSearchResponseDTO
 {
+    [JsonPropertyName("EventCollection")]
     public EventCollection EventCollection { get; init; }
 }
-
 public record EventCollection
 {
+    [JsonPropertyName("rows")]
     public List<BioStarEventDTO> Rows { get; init; } = [];
 }
 
