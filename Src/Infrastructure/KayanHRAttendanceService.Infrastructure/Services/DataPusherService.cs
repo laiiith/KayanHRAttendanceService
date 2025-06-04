@@ -1,8 +1,8 @@
-﻿using KayanHRAttendanceService.Application.DTO;
-using KayanHRAttendanceService.Application.Interfaces.Data;
+﻿using KayanHRAttendanceService.Application.Interfaces.Data;
 using KayanHRAttendanceService.Application.Interfaces.Services;
 using KayanHRAttendanceService.Application.Interfaces.Services.AttendanceConnectors;
 using KayanHRAttendanceService.Domain.Entities.General;
+using KayanHRAttendanceService.Domain.Entities.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -31,19 +31,20 @@ public class DataPusherService(IAttendanceConnector attendanceConnector, IUnitOf
 
             logger.LogInformation("Fetched {Count} attendance records for pushing.", pendingRecords.Count);
 
-            var (response, initialStatusId) = await kayanConnectorService
+            var (IsSuccess, StatusId) = await kayanConnectorService
                 .PushToKayanConnectorEndPoint(pendingRecords);
 
-            int statusId = response?.Response.IsSuccess == true ? 2 : 3;
+            int statusId = IsSuccess == true ? 2 : 3;
 
             if (attendanceConnector is IDbAttendanceConnector dbConnector)
             {
                 await dbConnector.UpdateFlagForFetchedDataAsync(pendingRecords, statusId);
             }
 
-            if (response?.Data?.ListPunches is { Count: > 0 })
+
+            if (IsSuccess)
             {
-                await MarkAsPushedAsync(response.Data.ListPunches, statusId);
+                await MarkAsPushedAsync(pendingRecords, statusId);
             }
 
             logger.LogInformation("Attendance data push operation completed.");
@@ -55,12 +56,12 @@ public class DataPusherService(IAttendanceConnector attendanceConnector, IUnitOf
         }
     }
 
-    private async Task MarkAsPushedAsync(List<KayanConnectorAttendanceDTO> listPunches, int statusId)
+    private async Task MarkAsPushedAsync(List<AttendanceRecord> listPunches, int statusId)
     {
         if (listPunches == null || listPunches.Count == 0)
             return;
 
-        var tids = listPunches.Select(p => p.tid).Distinct().ToList();
+        var tids = listPunches.Select(p => p.TId).Distinct().ToList();
 
         var recordsToUpdate = await unitOfWork.AttendanceData
             .GetAllAsync(x => tids.Contains(x.TId));

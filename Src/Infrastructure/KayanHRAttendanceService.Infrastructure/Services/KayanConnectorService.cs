@@ -12,7 +12,7 @@ public class KayanConnectorService(IHttpService httpService, IOptions<Integratio
 {
     private readonly IntegrationSettings _settings = settingsOptions.Value;
 
-    public async Task<(KayanConnectorResponseDTO? response, int StatusID)> PushToKayanConnectorEndPoint(List<AttendanceRecord> records)
+    public async Task<(bool IsSuccess, int StatusID)> PushToKayanConnectorEndPoint(List<AttendanceRecord> records)
     {
 
         var response = await httpService.SendAsync<KayanConnectorResponseDTO>(new Domain.Entities.Services.APIRequest
@@ -36,9 +36,8 @@ public class KayanConnectorService(IHttpService httpService, IOptions<Integratio
         if (!response.IsSuccess || response.StatusCode != 200)
         {
             logger.LogError("Failed to push records: HTTP {StatusCode} - {Error}", response.StatusCode, response.ErrorMessage);
-            return (null, response.StatusCode);
         }
 
-        return (response.Data, response.StatusCode);
+        return (response.IsSuccess, response.StatusCode);
     }
 }

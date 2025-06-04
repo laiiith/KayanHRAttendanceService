@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KayanHRAttendanceService.Infrastructure.Data.ApplicationDbContext.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250604115311_MakeColumnsNullable")]
-    partial class MakeColumnsNullable
+    [Migration("20250604140226_AddNullableColumns")]
+    partial class AddNullableColumns
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,12 +38,14 @@ namespace KayanHRAttendanceService.Infrastructure.Data.ApplicationDbContext.Migr
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PunchTime")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Status")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("TId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("ID");

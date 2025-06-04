@@ -35,12 +35,14 @@ namespace KayanHRAttendanceService.Infrastructure.Data.ApplicationDbContext.Migr
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PunchTime")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Status")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("TId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("ID");
