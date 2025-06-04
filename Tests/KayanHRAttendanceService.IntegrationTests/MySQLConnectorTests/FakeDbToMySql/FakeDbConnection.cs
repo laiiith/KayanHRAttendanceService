@@ -20,9 +20,15 @@ public class FakeDbConnection : DbConnection
 
     public override Task OpenAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    public override void Close() { }
-    public override void Open() { }
-    public override void ChangeDatabase(string databaseName) { }
+    public override void Close()
+    { }
+
+    public override void Open()
+    { }
+
+    public override void ChangeDatabase(string databaseName)
+    { }
+
     protected override DbCommand CreateDbCommand() => _command;
 
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)

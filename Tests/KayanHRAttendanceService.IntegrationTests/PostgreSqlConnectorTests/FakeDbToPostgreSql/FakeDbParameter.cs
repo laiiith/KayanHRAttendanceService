@@ -14,6 +14,7 @@ namespace KayanHRAttendanceService.IntegrationTests.PostgreSqlConnectorTests.Fak
         public override bool SourceColumnNullMapping { get; set; }
         public override int Size { get; set; }
 
-        public override void ResetDbType() { }
+        public override void ResetDbType()
+        { }
     }
 }

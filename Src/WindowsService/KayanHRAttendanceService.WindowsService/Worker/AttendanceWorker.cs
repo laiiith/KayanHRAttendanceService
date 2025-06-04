@@ -5,33 +5,31 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace KayanHRAttendanceService.WindowsService.Worker
+namespace KayanHRAttendanceService.WindowsService.Worker;
+
+public class AttendanceWorker(IServiceProvider serviceProvider, IOptions<IntegrationSettings> settingsOptions, ILogger<AttendanceWorker> logger) : BackgroundService
 {
-    public class AttendanceWorker(IServiceProvider serviceProvider, IOptions<IntegrationSettings> settingsOptions, ILogger<AttendanceWorker> logger) : BackgroundService
+    private readonly IntegrationSettings _settings = settingsOptions.Value;
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        private readonly IntegrationSettings _settings = settingsOptions.Value;
+        logger.LogInformation("AttendanceWorker started.");
 
-
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        while (!stoppingToken.IsCancellationRequested)
         {
-            logger.LogInformation("AttendanceWorker started.");
-
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
-                {
-                    using var scope = serviceProvider.CreateScope();
-                    var syncService = scope.ServiceProvider.GetRequiredService<ISyncAttendanceData>();
+                using var scope = serviceProvider.CreateScope();
+                var syncService = scope.ServiceProvider.GetRequiredService<ISyncAttendanceData>();
 
-                    await syncService.SyncData();
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Error in AttendanceWorker loop");
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(_settings.Interval), stoppingToken);
+                await syncService.SyncData();
             }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error in AttendanceWorker loop");
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(_settings.Interval), stoppingToken);
         }
     }
 }

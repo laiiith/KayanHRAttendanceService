@@ -48,14 +48,19 @@ public class FakeDbDataReader : DbDataReader
 
     // باقي الدوال يمكن تركها بـ NotImplementedException
     public override bool NextResult() => false;
+
     public override int Depth => throw new NotImplementedException();
 
     public override int RecordsAffected => throw new NotImplementedException();
 
     public override IEnumerator GetEnumerator() => throw new NotImplementedException();
+
     public override string GetName(int ordinal) => throw new NotImplementedException();
+
     public override Type GetFieldType(int ordinal) => typeof(string);
+
     public override object GetValue(int ordinal) => GetString(ordinal);
+
     public override bool IsDBNull(int ordinal) => false;
 
     public override bool GetBoolean(int ordinal)

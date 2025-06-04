@@ -20,8 +20,11 @@ namespace KayanHRAttendanceService.IntegrationTests.PostgreSqlConnectorTests.Fak
         public override string ServerVersion => "1.0";
         public override ConnectionState State => _state;
 
-        public override void ChangeDatabase(string databaseName) { }
+        public override void ChangeDatabase(string databaseName)
+        { }
+
         public override void Close() => _state = ConnectionState.Closed;
+
         public override void Open() => _state = ConnectionState.Open;
 
         protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
@@ -33,6 +36,5 @@ namespace KayanHRAttendanceService.IntegrationTests.PostgreSqlConnectorTests.Fak
         {
             return new FakeDbCommand(_data, this);
         }
-
     }
 }

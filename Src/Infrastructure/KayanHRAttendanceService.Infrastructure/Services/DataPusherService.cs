@@ -10,6 +10,7 @@ namespace KayanHRAttendanceService.Infrastructure.Services;
 public class DataPusherService(IAttendanceConnector attendanceConnector, IUnitOfWork unitOfWork, ILogger<DataPusherService> logger, IOptions<IntegrationSettings> settingsOptions, IKayanConnectorService kayanConnectorService) : IDataPusherService
 {
     private readonly IntegrationSettings _settings = settingsOptions.Value;
+
     public async Task PushAsync()
     {
         logger.LogInformation("Starting to push attendance data to KayanHR...");
@@ -28,7 +29,6 @@ public class DataPusherService(IAttendanceConnector attendanceConnector, IUnitOf
         await kayanConnectorService.PushToKayanConnectorEndPoint(records);
 
         //MarkAsPushed();
-
 
         await unitOfWork.SaveChangesAsync();
         logger.LogInformation("Push operation completed.");

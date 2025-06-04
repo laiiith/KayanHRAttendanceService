@@ -11,7 +11,7 @@ namespace KayanHRAttendanceService.IntegrationTests.MySQLConnectorTests;
 
 public class MySQLConnectorUnitTests
 {
-    class SQLiteTestConnector : MySQLConnector
+    private class SQLiteTestConnector : MySQLConnector
     {
         private readonly DbConnection _connection;
         private readonly IOptions<IntegrationSettings> _settings;

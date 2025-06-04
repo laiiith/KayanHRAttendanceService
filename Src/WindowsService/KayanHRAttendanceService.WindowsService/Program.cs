@@ -18,7 +18,7 @@ using Serilog;
 
 namespace KayanHRAttendanceService.WindowsService;
 
-class Program
+internal class Program
 {
     public static void Main(string[] args)
     {
@@ -40,12 +40,10 @@ class Program
         {
             Log.CloseAndFlush();
         }
-
     }
 
     private static IHostBuilder CreateHostBuilder(string[] args)
     {
-
         return Host.CreateDefaultBuilder(args)
             .UseSerilog()
             .ConfigureAppConfiguration((context, config) =>
@@ -66,7 +64,6 @@ class Program
                     default:
                         throw new InvalidOperationException("Unsupported integration type");
                 }
-
             })
             .ConfigureServices((context, services) =>
             {

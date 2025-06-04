@@ -12,8 +12,6 @@ public class FakeDbCommand : DbCommand
         _reader = reader;
     }
 
-
-
     public override string CommandText { get; set; }
     public override int CommandTimeout { get; set; }
     public override CommandType CommandType { get; set; }
@@ -26,9 +24,14 @@ public class FakeDbCommand : DbCommand
     public override bool DesignTimeVisible { get; set; }
 
     public override void Cancel() => throw new NotImplementedException();
+
     public override int ExecuteNonQuery() => throw new NotImplementedException();
+
     public override object ExecuteScalar() => throw new NotImplementedException();
+
     public override void Prepare() => throw new NotImplementedException();
+
     protected override DbParameter CreateDbParameter() => throw new NotImplementedException();
+
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) => _reader;
 }

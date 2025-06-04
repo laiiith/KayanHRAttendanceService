@@ -90,18 +90,31 @@ namespace KayanHRAttendanceService.IntegrationTests.PostgreSqlConnectorTests.Fak
         }
 
         public override bool GetBoolean(int ordinal) => Convert.ToBoolean(GetValue(ordinal));
+
         public override byte GetByte(int ordinal) => Convert.ToByte(GetValue(ordinal));
+
         public override long GetBytes(int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length) => 0;
+
         public override char GetChar(int ordinal) => Convert.ToChar(GetValue(ordinal));
+
         public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length) => 0;
+
         public override Guid GetGuid(int ordinal) => Guid.Parse(GetValue(ordinal).ToString());
+
         public override short GetInt16(int ordinal) => Convert.ToInt16(GetValue(ordinal));
+
         public override int GetInt32(int ordinal) => Convert.ToInt32(GetValue(ordinal));
+
         public override long GetInt64(int ordinal) => Convert.ToInt64(GetValue(ordinal));
+
         public override float GetFloat(int ordinal) => Convert.ToSingle(GetValue(ordinal));
+
         public override double GetDouble(int ordinal) => Convert.ToDouble(GetValue(ordinal));
+
         public override string GetString(int ordinal) => GetValue(ordinal).ToString();
+
         public override decimal GetDecimal(int ordinal) => Convert.ToDecimal(GetValue(ordinal));
+
         public override DateTime GetDateTime(int ordinal) => Convert.ToDateTime(GetValue(ordinal));
 
         public override System.Collections.IEnumerator GetEnumerator()

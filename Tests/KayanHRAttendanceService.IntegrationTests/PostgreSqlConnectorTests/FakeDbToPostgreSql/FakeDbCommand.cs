@@ -24,10 +24,12 @@ namespace KayanHRAttendanceService.IntegrationTests.PostgreSqlConnectorTests.Fak
         protected override DbTransaction DbTransaction { get; set; }
         public override bool DesignTimeVisible { get; set; }
 
-        public override void Cancel() { }
-        public override int ExecuteNonQuery() => 0;
-        public override object ExecuteScalar() => null;
+        public override void Cancel()
+        { }
 
+        public override int ExecuteNonQuery() => 0;
+
+        public override object ExecuteScalar() => null;
 
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
         {
@@ -36,6 +38,7 @@ namespace KayanHRAttendanceService.IntegrationTests.PostgreSqlConnectorTests.Fak
 
         protected override DbParameter CreateDbParameter() => new FakeDbParameter();
 
-        public override void Prepare() { }
+        public override void Prepare()
+        { }
     }
 }

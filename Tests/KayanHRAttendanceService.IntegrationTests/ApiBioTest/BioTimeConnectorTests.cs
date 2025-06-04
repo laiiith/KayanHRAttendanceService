@@ -7,7 +7,9 @@ using KayanHRAttendanceService.Domain.Entities.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+
 namespace KayanHRAttendanceService.IntegrationTests.ApiBioTest;
+
 public class BioTimeConnectorTests
 {
     private readonly Mock<IHttpService> _mockHttpService = new();
@@ -41,7 +43,6 @@ public class BioTimeConnectorTests
                 OvertimeOut = "7"
             }
         });
-
     }
 
     [Fact]

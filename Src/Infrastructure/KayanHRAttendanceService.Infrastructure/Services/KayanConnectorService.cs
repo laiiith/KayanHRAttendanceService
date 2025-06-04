@@ -13,7 +13,6 @@ public class KayanConnectorService(IHttpService httpService, IOptions<Integratio
 
     public async Task PushToKayanConnectorEndPoint(List<AttendanceRecord>? records)
     {
-
         var response = await httpService.SendAsync<object>(new Domain.Entities.Services.APIRequest
         {
             Url = _settings.APIBulkEndpoint,
@@ -24,6 +23,5 @@ public class KayanConnectorService(IHttpService httpService, IOptions<Integratio
             ResponseContentType = Domain.Entities.Services.HttpServiceContentTypes.application_json,
             Data = new { }
         });
-
     }
 }
