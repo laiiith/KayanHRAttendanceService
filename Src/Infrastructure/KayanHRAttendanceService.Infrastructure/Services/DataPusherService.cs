@@ -25,8 +25,14 @@ public class DataPusherService(IAttendanceConnector attendanceConnector, IUnitOf
             return;
         }
 
-        //var response =
-        await kayanConnectorService.PushToKayanConnectorEndPoint(records);
+        var (Response, StatusID) = await kayanConnectorService.PushToKayanConnectorEndPoint(records);
+
+        int statusID = StatusID;
+
+        if (Response is not null)
+        {
+            StatusID = Response.Response.IsSuccess ? 2 : 3;
+        }
 
         //MarkAsPushed();
 

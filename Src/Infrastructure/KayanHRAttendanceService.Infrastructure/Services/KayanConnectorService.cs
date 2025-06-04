@@ -1,4 +1,5 @@
-﻿using KayanHRAttendanceService.Application.Interfaces;
+﻿using KayanHRAttendanceService.Application.DTO;
+using KayanHRAttendanceService.Application.Interfaces;
 using KayanHRAttendanceService.Application.Interfaces.Services;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
@@ -11,9 +12,10 @@ public class KayanConnectorService(IHttpService httpService, IOptions<Integratio
 {
     private readonly IntegrationSettings _settings = settingsOptions.Value;
 
-    public async Task PushToKayanConnectorEndPoint(List<AttendanceRecord>? records)
+    public async Task<(KayanConnectorResponseDTO? response, int StatusID)> PushToKayanConnectorEndPoint(List<AttendanceRecord> records)
     {
-        var response = await httpService.SendAsync<object>(new Domain.Entities.Services.APIRequest
+
+        var response = await httpService.SendAsync<KayanConnectorResponseDTO>(new Domain.Entities.Services.APIRequest
         {
             Url = _settings.APIBulkEndpoint,
             CustomHeaders = new Dictionary<string, string> { { "client_id", _settings.ClientID }, { "client_secret", _settings.ClientSecret } },
@@ -21,7 +23,22 @@ public class KayanConnectorService(IHttpService httpService, IOptions<Integratio
             Method = HttpMethod.Post,
             RequestContentType = Domain.Entities.Services.HttpServiceContentTypes.application_json,
             ResponseContentType = Domain.Entities.Services.HttpServiceContentTypes.application_json,
-            Data = new { }
+            Data = records.Select(x => new KayanConnectorAttendanceDTO
+            {
+                tid = x.TId,
+                EmployeeCardNumber = x.EmployeeCode,
+                AttendanceDate = DateTime.TryParse(x.PunchTime, out var parsedDate) ? parsedDate : default,
+                FunctionType = x.Function,
+                MachineName = x.MachineName
+            }).ToList()
         });
+
+        if (!response.IsSuccess || response.StatusCode != 200)
+        {
+            logger.LogError("Failed to push records: HTTP {StatusCode} - {Error}", response.StatusCode, response.ErrorMessage);
+            return (null, response.StatusCode);
+        }
+
+        return (response.Data, response.StatusCode);
     }
 }

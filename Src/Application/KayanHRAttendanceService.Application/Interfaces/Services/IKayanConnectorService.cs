@@ -1,8 +1,9 @@
-﻿using KayanHRAttendanceService.Domain.Entities.Sqlite;
+﻿using KayanHRAttendanceService.Application.DTO;
+using KayanHRAttendanceService.Domain.Entities.Sqlite;
 
 namespace KayanHRAttendanceService.Application.Interfaces.Services;
 
 public interface IKayanConnectorService
 {
-    Task PushToKayanConnectorEndPoint(List<AttendanceRecord>? records);
+    Task<(KayanConnectorResponseDTO? response, int StatusID)> PushToKayanConnectorEndPoint(List<AttendanceRecord> records);
 }

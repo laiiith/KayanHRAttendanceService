@@ -49,11 +49,11 @@ public class BioStarConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
 
                 records.Add(new AttendanceRecord
                 {
-                    TId = item.Index.ToString() ?? "",
-                    EmployeeCode = item.User_Id?.User_Id ?? "",
-                    PunchTime = punchTime ?? "",
+                    TId = item.Index.ToString() ?? string.Empty,
+                    EmployeeCode = item.User_Id?.User_Id ?? string.Empty,
+                    PunchTime = punchTime ?? string.Empty,
                     Function = MapFunction(function),
-                    MachineName = item.Device_Id?.Name ?? "",
+                    MachineName = item.Device_Id?.Name ?? string.Empty,
                 });
 
                 logger.LogInformation("Fetched punch at {PunchTime}", punchTime);
