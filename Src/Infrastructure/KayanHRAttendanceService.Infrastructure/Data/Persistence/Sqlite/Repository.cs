@@ -13,9 +13,9 @@ public class Repository<T>(ApplicationDbContext.ApplicationDbContext dbContext) 
         await dbSet.AddAsync(entity);
     }
 
-    public async Task AddAsync(T[] entity)
+    public async Task AddAsync(IEnumerable<T> entities)
     {
-        await dbSet.AddRangeAsync(entity);
+        await dbSet.AddRangeAsync(entities);
     }
 
     public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, int? take = null)

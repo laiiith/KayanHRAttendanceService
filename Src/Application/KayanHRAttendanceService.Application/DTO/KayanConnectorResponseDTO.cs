@@ -5,8 +5,6 @@ namespace KayanHRAttendanceService.Application.DTO;
 public class KayanConnectorResponseDTO
 {
     public Response Response { get; set; }
-    public int StatusCode { get; set; }
-
     public Data Data { get; set; }
 }
 public class Response

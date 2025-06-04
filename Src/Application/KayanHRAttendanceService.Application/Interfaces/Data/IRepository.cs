@@ -10,5 +10,5 @@ public interface IRepository<T> where T : class
 
     Task AddAsync(T entity);
 
-    Task AddAsync(T[] entity);
+    Task AddAsync(IEnumerable<T> entities);
 }

@@ -40,5 +40,5 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settingsOptions,
 
     protected override string GetCreateTempTableSql() => "CREATE TABLE #TempTVP(tid INT,flag INT DEFAULT 1);";
 
-    protected override string GetInsertTempTableSql() => "INSERT INTO #TempTVP (tid) VALUES (@tid)";
+    protected override string GetInsertTempTableSql() => "INSERT INTO #TempTVP (tid,flag) VALUES (@tid,@flag)";
 }

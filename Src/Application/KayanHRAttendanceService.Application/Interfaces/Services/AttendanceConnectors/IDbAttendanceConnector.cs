@@ -4,5 +4,5 @@ namespace KayanHRAttendanceService.Application.Interfaces.Services.AttendanceCon
 
 public interface IDbAttendanceConnector : IAttendanceConnector
 {
-    Task UpdateFlagForFetchedDataAsync(List<AttendanceRecord> records);
+    Task UpdateFlagForFetchedDataAsync(List<AttendanceRecord> records, int statusID = 1);
 }

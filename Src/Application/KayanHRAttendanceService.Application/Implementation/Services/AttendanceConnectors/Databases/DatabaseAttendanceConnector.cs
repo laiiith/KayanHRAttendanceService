@@ -23,7 +23,7 @@ public abstract class DatabaseAttendanceConnector<T>(IOptions<IntegrationSetting
         }
     }
 
-    public async Task UpdateFlagForFetchedDataAsync(List<AttendanceRecord> records)
+    public async Task UpdateFlagForFetchedDataAsync(List<AttendanceRecord> records, int statusID = 1)
     {
         if (records == null || records.Count == 0)
         {
@@ -44,7 +44,7 @@ public abstract class DatabaseAttendanceConnector<T>(IOptions<IntegrationSetting
 
             await sqlConnection.ExecuteAsync(createTempTableSql, transaction: sqlTransaction);
 
-            var insertParams = records.Select(r => new { tid = r.TId });
+            var insertParams = records.Select(r => new { tid = r.TId, flag = statusID });
 
             var insertSql = GetInsertTempTableSql();
 
@@ -63,7 +63,7 @@ public abstract class DatabaseAttendanceConnector<T>(IOptions<IntegrationSetting
 
     protected virtual string GetCreateTempTableSql() => "CREATE TEMPORARY TABLE temp_tvp(tid INT,flag INT DEFAULT (1))";
 
-    protected virtual string GetInsertTempTableSql() => "INSERT INTO temp_tvp (tid) VALUES (@tid)";
+    protected virtual string GetInsertTempTableSql() => "INSERT INTO temp_tvp (tid,flag) VALUES (@tid,@flag)";
 
     protected virtual string GetDropTempTableSql() => "DROP TEMPORARY TABLE IF EXISTS temp_tvp";
 }

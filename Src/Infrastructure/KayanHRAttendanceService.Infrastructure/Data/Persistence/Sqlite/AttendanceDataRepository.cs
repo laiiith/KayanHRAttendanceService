@@ -13,4 +13,10 @@ public class AttendanceDataRepository(ApplicationDbContext.ApplicationDbContext 
         var dbSet = _dbContext.Set<AttendanceRecord>();
         return await dbSet.Where(x => !string.IsNullOrEmpty(x.PunchTime)).MaxAsync(x => x.PunchTime);
     }
+
+    public Task UpdateAsync(IEnumerable<AttendanceRecord> records)
+    {
+        _dbContext.AttendanceData.UpdateRange(records);
+        return Task.CompletedTask;
+    }
 }

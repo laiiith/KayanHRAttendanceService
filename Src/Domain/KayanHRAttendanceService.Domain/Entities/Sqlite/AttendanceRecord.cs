@@ -4,7 +4,6 @@ namespace KayanHRAttendanceService.Domain.Entities.Sqlite;
 
 public record AttendanceRecord
 {
-    //Indexing Here
     [Key]
     public int ID { get; set; }
     public string EmployeeCode { get; set; }
