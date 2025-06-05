@@ -10,12 +10,15 @@ namespace KayanHRAttendanceService.Infrastructure.Services;
 
 public class KayanConnectorService(IHttpService httpService, IOptions<IntegrationSettings> settingsOptions, ILogger<KayanConnectorService> logger) : IKayanConnectorService
 {
+    private readonly ILogger<KayanConnectorService> _logger = logger;
+
+    private readonly IHttpService _httpService = httpService;
+
     private readonly IntegrationSettings _settings = settingsOptions.Value;
 
     public async Task<(bool IsSuccess, int StatusID)> PushToKayanConnectorEndPoint(List<AttendanceRecord> records)
     {
-
-        var response = await httpService.SendAsync<KayanConnectorResponseDTO>(new Domain.Entities.Services.APIRequest
+        var response = await _httpService.SendAsync<KayanConnectorResponseDTO>(new Domain.Entities.Services.APIRequest
         {
             Url = _settings.APIBulkEndpoint,
             CustomHeaders = new Dictionary<string, string> { { "clientID", _settings.ClientID }, { "ClientSecret", _settings.ClientSecret } },
@@ -35,7 +38,7 @@ public class KayanConnectorService(IHttpService httpService, IOptions<Integratio
 
         if (!response.IsSuccess || response.StatusCode != 200)
         {
-            logger.LogError("Failed to push records: HTTP {StatusCode} - {Error}", response.StatusCode, response.ErrorMessage);
+            _logger.LogError("Failed to push records: HTTP {StatusCode} - {Error}", response.StatusCode, response.ErrorMessage);
         }
 
         return (response.IsSuccess, response.StatusCode);

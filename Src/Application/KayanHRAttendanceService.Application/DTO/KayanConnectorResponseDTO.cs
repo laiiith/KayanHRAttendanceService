@@ -4,6 +4,7 @@ public class KayanConnectorResponseDTO
 {
     public Response Response { get; set; }
 }
+
 public class Response
 {
     public int StatusCode { get; set; }

@@ -20,7 +20,7 @@ namespace KayanHRAttendanceService.WindowsService;
 
 internal class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         try
         {
@@ -30,7 +30,7 @@ internal class Program
 
             ApplyPendingMigrations(host);
 
-            host.Run();
+            await host.RunAsync();
         }
         catch (Exception ex)
         {

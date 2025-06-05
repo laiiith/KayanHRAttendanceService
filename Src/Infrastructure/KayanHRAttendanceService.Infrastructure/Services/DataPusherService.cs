@@ -10,73 +10,71 @@ namespace KayanHRAttendanceService.Infrastructure.Services;
 
 public class DataPusherService(IAttendanceConnector attendanceConnector, IUnitOfWork unitOfWork, ILogger<DataPusherService> logger, IOptions<IntegrationSettings> settingsOptions, IKayanConnectorService kayanConnectorService) : IDataPusherService
 {
+    private readonly IAttendanceConnector _attendanceConnector = attendanceConnector;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly ILogger<DataPusherService> _logger = logger;
+    private readonly IKayanConnectorService _kayanConnectorService = kayanConnectorService;
     private readonly IntegrationSettings _settings = settingsOptions.Value;
+    private static readonly string[] _excludedStatuses = { "2", "3", "401", "403", "500" };
+
 
     public async Task PushAsync()
     {
-        logger.LogInformation("Starting attendance data push to KayanHR...");
+        _logger.LogInformation("Starting attendance data push to KayanHR...");
 
         try
         {
-            var excludedStatuses = new[] { "2", "3", "401", "403", "500" };
-
-            var pendingRecords = await unitOfWork.AttendanceData
-                .GetAllAsync(x => !excludedStatuses.Contains(x.Status), _settings.BatchSize);
+            var pendingRecords = await _unitOfWork.AttendanceData
+                .GetAllAsync(x => !_excludedStatuses.Contains(x.Status), _settings.BatchSize);
 
             if (pendingRecords == null || pendingRecords.Count == 0)
             {
-                logger.LogInformation("No attendance records found for pushing.");
+                _logger.LogInformation("No attendance records found for pushing.");
                 return;
             }
 
-            logger.LogInformation("Fetched {Count} attendance records for pushing.", pendingRecords.Count);
+            _logger.LogInformation("Fetched {Count} attendance records for pushing.", pendingRecords.Count);
 
-            var (IsSuccess, StatusId) = await kayanConnectorService
+            var (isSuccess, responseStatusId) = await _kayanConnectorService
                 .PushToKayanConnectorEndPoint(pendingRecords);
 
-            int statusId = IsSuccess == true ? 2 : 3;
 
-            if (attendanceConnector is IDbAttendanceConnector dbConnector)
+            var statusId = responseStatusId != 200
+                          ? 0
+                          : isSuccess ? 2 : 3;
+
+            if (_attendanceConnector is IDbAttendanceConnector dbConnector)
             {
-                await dbConnector.UpdateFlagForFetchedDataAsync(pendingRecords, statusId);
+                await dbConnector.UpdateFlagForFetchedDataAsync(pendingRecords, responseStatusId);
             }
 
-
-            if (IsSuccess)
+            if (isSuccess)
             {
                 await MarkAsPushedAsync(pendingRecords, statusId);
             }
 
-            logger.LogInformation("Attendance data push operation completed.");
+            _logger.LogInformation("Attendance data push operation completed.");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred while pushing attendance data.");
+            _logger.LogError(ex, "An error occurred while pushing attendance data.");
             throw;
         }
     }
 
-    private async Task MarkAsPushedAsync(List<AttendanceRecord> listPunches, int statusId)
+    private async Task MarkAsPushedAsync(List<AttendanceRecord> punches, int statusId)
     {
-        if (listPunches == null || listPunches.Count == 0)
+        if (punches is null || punches.Count == 0)
             return;
 
-        var tids = listPunches.Select(p => p.TId).Distinct().ToList();
-
-        var recordsToUpdate = await unitOfWork.AttendanceData
-            .GetAllAsync(x => tids.Contains(x.TId));
-
-        if (recordsToUpdate == null || recordsToUpdate.Count == 0)
-            return;
-
-        foreach (var record in recordsToUpdate)
+        foreach (var record in punches)
         {
             record.Status = statusId.ToString();
         }
 
-        await unitOfWork.AttendanceData.UpdateAsync(recordsToUpdate);
-        await unitOfWork.SaveChangesAsync();
+        await _unitOfWork.AttendanceData.UpdateAsync(punches);
+        await _unitOfWork.SaveChangesAsync();
 
-        logger.LogInformation("Marked {Count} attendance records as pushed with status {Status}.", recordsToUpdate.Count, statusId);
+        _logger.LogInformation("Marked {Count} attendance records as pushed with status {Status}.", punches.Count, statusId);
     }
 }
