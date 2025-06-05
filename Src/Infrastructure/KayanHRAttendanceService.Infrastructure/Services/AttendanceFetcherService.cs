@@ -27,9 +27,9 @@ public class AttendanceFetcherService(IAttendanceConnector attendanceConnector, 
             records.Select(p => p.PunchTime).Contains(r.PunchTime));
 
         var existingPairs = new HashSet<(string EmployeeCode, string PunchTime)>(
-                        existingRecords.Select(r => (r.EmployeeCode, r.PunchTime)));
+                        existingRecords.Select(r => (r.EmployeeCode!, r.PunchTime)));
 
-        var newRecords = records.Where(p => !existingPairs.Contains((p.EmployeeCode, p.PunchTime))).ToList();
+        var newRecords = records.Where(p => !existingPairs.Contains((p.EmployeeCode!, p.PunchTime))).ToList();
 
         await unitOfWork.AttendanceData.AddAsync([.. newRecords]);
 

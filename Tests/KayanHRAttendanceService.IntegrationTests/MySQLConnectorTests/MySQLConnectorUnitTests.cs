@@ -64,6 +64,24 @@ public class MySQLConnectorUnitTests
 
         var settings = Options.Create(new IntegrationSettings
         {
+            Type = 3,
+            APIBulkEndpoint = "",
+            BatchSize = 1,
+            ClientID = "",
+            ClientSecret = "",
+            DynamicDate = true,
+            Interval = 1,
+            FunctionMapping = new FunctionMapping
+            {
+                AttendanceIn = "0",
+                AttendanceOut = "1",
+                BreakIn = "2",
+                BreakOut = "3",
+                PermissionIn = "4",
+                PermissionOut = "5",
+                OvertimeIn = "6",
+                OvertimeOut = "7"
+            },
             Integration = new Integration
             {
                 FetchDataProcedure = "SELECT * FROM AttendanceRecord",

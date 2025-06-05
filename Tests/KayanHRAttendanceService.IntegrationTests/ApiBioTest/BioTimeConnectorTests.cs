@@ -21,6 +21,14 @@ public class BioTimeConnectorTests
     {
         _mockOptions = Options.Create(new IntegrationSettings
         {
+            Type = 3,
+            APIBulkEndpoint = "",
+            BatchSize = 1,
+            ClientID = "",
+            ClientSecret = "",
+            DynamicDate = true,
+            Interval = 1,
+
             Integration = new Integration
             {
                 Server = "http://fake-server.com",

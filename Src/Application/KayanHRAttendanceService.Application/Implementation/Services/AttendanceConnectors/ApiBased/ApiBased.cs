@@ -11,10 +11,10 @@ public class ApiBased(IUnitOfWork unitOfWork, IOptions<IntegrationSettings> sett
     protected async Task<string> DetermineStartTimeAsync()
     {
         if (!_settings.DynamicDate)
-            return _settings.Integration.StartDate;
+            return _settings.Integration.StartDate!;
 
         var lastPunchTime = await unitOfWork.AttendanceData.GetLastPunchTime();
-        return !string.IsNullOrWhiteSpace(lastPunchTime) ? lastPunchTime : _settings.Integration.StartDate;
+        return !string.IsNullOrWhiteSpace(lastPunchTime) ? lastPunchTime : _settings.Integration.StartDate!;
     }
 
     protected string MapFunction(string? function)

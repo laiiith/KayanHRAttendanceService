@@ -13,12 +13,13 @@ namespace KayanHRAttendanceService.Application.Implementation.Services.Attendanc
 public class MSSqlServerConnector(IOptions<IntegrationSettings> settingsOptions, ILogger<MSSqlServerConnector> logger) : DatabaseAttendanceConnector<MSSqlServerConnector>(settingsOptions, logger), IDbAttendanceConnector
 {
     private readonly IntegrationSettings _settings = settingsOptions.Value;
+    private readonly ILogger<MSSqlServerConnector> _logger = logger;
 
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
         if (string.IsNullOrEmpty(_settings.Integration.FetchDataProcedure) || string.IsNullOrEmpty(_settings.Integration.ConnectionString))
         {
-            logger.LogWarning("FetchDataProcedure or ConnectionString is Empty");
+            _logger.LogWarning("FetchDataProcedure or ConnectionString is Empty");
             return [];
         }
         using var dbConnection = await CreateDbConnection();

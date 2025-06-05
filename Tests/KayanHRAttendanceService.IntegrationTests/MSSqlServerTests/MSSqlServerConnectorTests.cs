@@ -18,6 +18,24 @@ public class MSSqlServerConnectorTests
         mockLogger = new Mock<ILogger<MSSqlServerConnector>>();
         settings = Options.Create(new IntegrationSettings
         {
+            Type = 3,
+            APIBulkEndpoint = "",
+            BatchSize = 1,
+            ClientID = "",
+            ClientSecret = "",
+            DynamicDate = true,
+            Interval = 1,
+            FunctionMapping = new FunctionMapping
+            {
+                AttendanceIn = "0",
+                AttendanceOut = "1",
+                BreakIn = "2",
+                BreakOut = "3",
+                PermissionIn = "4",
+                PermissionOut = "5",
+                OvertimeIn = "6",
+                OvertimeOut = "7"
+            },
             Integration = new Integration
             {
                 ConnectionString = "FakeConnectionString",
@@ -68,8 +86,8 @@ public class MSSqlServerConnectorTests
 
         var records = new List<AttendanceRecord>
         {
-            new AttendanceRecord { TId = "1" },
-            new AttendanceRecord { TId = "2" }
+            new AttendanceRecord { TId = "1" , PunchTime = DateTime.Now.ToString()},
+            new AttendanceRecord { TId = "2" , PunchTime = DateTime.Now.ToString()}
         };
 
         await connector.UpdateFlagForFetchedDataAsync(records);
@@ -87,7 +105,7 @@ public class MSSqlServerConnectorTests
         mockLogger.Verify(l => l.Log(
             LogLevel.Warning,
             It.IsAny<EventId>(),
-            It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("No records provided for flag update.")),
+            It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("No records provided for flag update.")),
             null,
             It.IsAny<Func<It.IsAnyType, Exception?, string>>()
         ), Times.Once);

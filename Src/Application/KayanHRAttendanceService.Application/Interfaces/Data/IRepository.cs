@@ -4,7 +4,7 @@ namespace KayanHRAttendanceService.Application.Interfaces.Data;
 
 public interface IRepository<T> where T : class
 {
-    Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, int? take = null);
+    Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, int? take = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null);
 
     Task<T?> GetAsync(Expression<Func<T, bool>>? filter = null);
 

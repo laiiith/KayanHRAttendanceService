@@ -21,6 +21,24 @@ public class PostgreSqlConnectorTests
 
         var integrationSettings = new IntegrationSettings
         {
+            Type = 3,
+            APIBulkEndpoint = "",
+            BatchSize = 1,
+            ClientID = "",
+            ClientSecret = "",
+            DynamicDate = true,
+            Interval = 1,
+            FunctionMapping = new FunctionMapping
+            {
+                AttendanceIn = "0",
+                AttendanceOut = "1",
+                BreakIn = "2",
+                BreakOut = "3",
+                PermissionIn = "4",
+                PermissionOut = "5",
+                OvertimeIn = "6",
+                OvertimeOut = "7"
+            },
             Integration = new Integration
             {
                 ConnectionString = "Host=localhost;Username=test;Password=test;Database=testdb",
@@ -39,8 +57,8 @@ public class PostgreSqlConnectorTests
     {
         var expectedData = new List<AttendanceRecord>
         {
-            new AttendanceRecord { TId = "1" },
-            new AttendanceRecord { TId = "2" }
+            new AttendanceRecord { TId = "1",PunchTime=DateTime.Now.ToString() },
+            new AttendanceRecord { TId = "2",PunchTime=DateTime.Now.ToString() }
         };
 
         _connector.SetQueryResult(expectedData);

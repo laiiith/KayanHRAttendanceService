@@ -12,12 +12,13 @@ namespace KayanHRAttendanceService.Application.Implementation.Services.Attendanc
 public class MySQLConnector(IOptions<IntegrationSettings> settingsOptions, ILogger<MySQLConnector> logger) : DatabaseAttendanceConnector<MySQLConnector>(settingsOptions, logger), IDbAttendanceConnector
 {
     private readonly IntegrationSettings _settings = settingsOptions.Value;
+    private readonly ILogger<MySQLConnector> _logger = logger;
 
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
         if (string.IsNullOrEmpty(_settings.Integration.FetchDataProcedure) || string.IsNullOrEmpty(_settings.Integration.ConnectionString))
         {
-            logger.LogWarning("FetchDataProcedure or ConnectionString is Empty");
+            _logger.LogWarning("FetchDataProcedure or ConnectionString is Empty");
             return [];
         }
 

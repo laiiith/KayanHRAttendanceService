@@ -29,10 +29,10 @@ public class KayanConnectorService(IHttpService httpService, IOptions<Integratio
             Data = records.Select(x => new KayanConnectorAttendanceDTO
             {
                 tid = x.TId,
-                EmployeeCardNumber = x.EmployeeCode,
+                EmployeeCardNumber = x.EmployeeCode ?? string.Empty,
                 AttendanceDate = DateTime.TryParse(x.PunchTime, out var parsedDate) ? parsedDate : default,
-                FunctionType = x.Function,
-                MachineName = x.MachineName
+                FunctionType = x.Function ?? string.Empty,
+                MachineName = x.MachineName ?? string.Empty
             }).ToList()
         });
 

@@ -50,7 +50,7 @@ public abstract class DatabaseAttendanceConnector<T>(IOptions<IntegrationSetting
 
             await sqlConnection.ExecuteAsync(insertSql, insertParams, sqlTransaction);
 
-            await sqlConnection.ExecuteAsync(_settings.Integration.UpdateDataProcedure, commandType: CommandType.StoredProcedure, transaction: sqlTransaction);
+            await sqlConnection.ExecuteAsync(_settings.Integration.UpdateDataProcedure ?? string.Empty, commandType: CommandType.StoredProcedure, transaction: sqlTransaction);
 
             await sqlTransaction.CommitAsync();
         }

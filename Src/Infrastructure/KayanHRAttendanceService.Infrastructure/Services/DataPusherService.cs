@@ -25,7 +25,7 @@ public class DataPusherService(IAttendanceConnector attendanceConnector, IUnitOf
         try
         {
             var pendingRecords = await _unitOfWork.AttendanceData
-                .GetAllAsync(x => !_excludedStatuses.Contains(x.Status), _settings.BatchSize);
+                .GetAllAsync(x => !_excludedStatuses.Contains(x.Status), _settings.BatchSize, q => q.OrderBy(x => x.ID));
 
             if (pendingRecords == null || pendingRecords.Count == 0)
             {
@@ -62,19 +62,27 @@ public class DataPusherService(IAttendanceConnector attendanceConnector, IUnitOf
         }
     }
 
-    private async Task MarkAsPushedAsync(List<AttendanceRecord> punches, int statusId)
+    private async Task MarkAsPushedAsync(List<AttendanceRecord> listPunches, int statusId)
     {
-        if (punches is null || punches.Count == 0)
+        if (listPunches == null || listPunches.Count == 0)
             return;
 
-        foreach (var record in punches)
+        var tids = listPunches.Select(p => p.TId).Distinct().ToList();
+
+        var recordsToUpdate = await _unitOfWork.AttendanceData
+            .GetAllAsync(x => tids.Contains(x.TId));
+
+        if (recordsToUpdate == null || recordsToUpdate.Count == 0)
+            return;
+
+        foreach (var record in recordsToUpdate)
         {
             record.Status = statusId.ToString();
         }
 
-        await _unitOfWork.AttendanceData.UpdateAsync(punches);
+        await _unitOfWork.AttendanceData.UpdateAsync(recordsToUpdate);
         await _unitOfWork.SaveChangesAsync();
 
-        _logger.LogInformation("Marked {Count} attendance records as pushed with status {Status}.", punches.Count, statusId);
+        _logger.LogInformation("Marked {Count} attendance records as pushed with status {Status}.", recordsToUpdate.Count, statusId);
     }
 }
