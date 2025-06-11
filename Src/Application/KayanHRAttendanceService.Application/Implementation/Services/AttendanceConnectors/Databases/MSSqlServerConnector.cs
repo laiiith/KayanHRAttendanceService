@@ -27,7 +27,7 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settingsOptions,
         var data = await dbConnection.QueryAsync<AttendanceRecord>(_settings.Integration.FetchDataProcedure, commandType: CommandType.StoredProcedure);
 
         LogRecords(data);
-        return data.AsList();
+        return NormalizeFunctionValues(data);
     }
 
     protected override async Task<DbConnection> CreateDbConnection()

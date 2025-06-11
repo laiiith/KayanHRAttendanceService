@@ -95,7 +95,7 @@ public class BioTimeConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
             MachineSerialNo = r.MachineSerialNo ?? string.Empty
         }) ?? [];
 
-        return (records, response.Data.NextUrl);
+        return (records, response.Data?.NextUrl);
     }
 
     private async Task<string?> GetTokenAsync()

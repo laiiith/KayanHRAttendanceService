@@ -8,7 +8,7 @@ using System.Data.Common;
 
 namespace KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 
-public abstract class DatabaseAttendanceConnector<T>(IOptions<IntegrationSettings> settingsOptions, ILogger<T> logger) where T : class
+public abstract class DatabaseAttendanceConnector<T>(IOptions<IntegrationSettings> settingsOptions, ILogger<T> logger) : AttendanceConnectors(settingsOptions) where T : class
 {
     private readonly IntegrationSettings _settings = settingsOptions.Value;
 
@@ -22,6 +22,19 @@ public abstract class DatabaseAttendanceConnector<T>(IOptions<IntegrationSetting
             logger.LogInformation("Fetched attendance record with TID: {TId}", record.TId);
         }
     }
+
+    protected List<AttendanceRecord> NormalizeFunctionValues(IEnumerable<AttendanceRecord> records)
+    => [.. records.Select(x => new AttendanceRecord
+    {
+        TId = x.TId,
+        EmployeeCode = x.EmployeeCode,
+        Function = MapFunction(x.Function),
+        ID = x.ID,
+        MachineName = x.MachineName,
+        MachineSerialNo = x.MachineSerialNo,
+        Status = x.Status,
+        PunchTime = x.PunchTime,
+    })];
 
     public async Task UpdateFlagForFetchedDataAsync(List<AttendanceRecord> records, int statusID = 1)
     {
