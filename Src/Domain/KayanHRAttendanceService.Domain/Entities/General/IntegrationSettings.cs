@@ -11,6 +11,7 @@ public class IntegrationSettings
     public required bool DynamicDate { get; set; }
     public required FunctionMapping FunctionMapping { get; set; }
     public required Integration Integration { get; set; }
+    public required ZkTecoSettings ZkTecoSettings { get; set; }
 }
 
 public class FunctionMapping
@@ -36,4 +37,9 @@ public class Integration
     public string? EndDate { get; set; }
     public string? UpdateDataProcedure { get; set; }
     public string? FetchDataProcedure { get; set; }
+}
+public class ZkTecoSettings
+{
+    public string? Host { get; set; }
+    public string? Port { get; set; }
 }
