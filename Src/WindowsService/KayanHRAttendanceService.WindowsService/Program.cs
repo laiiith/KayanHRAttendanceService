@@ -1,6 +1,7 @@
 ﻿using KayanHRAttendanceService.Application.Implementation.Services;
 using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased;
 using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
+using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ZkTeco;
 using KayanHRAttendanceService.Application.Interfaces;
 using KayanHRAttendanceService.Application.Interfaces.Data;
 using KayanHRAttendanceService.Application.Interfaces.Services;
@@ -58,9 +59,9 @@ internal class Program
 
                 switch (typeID)
                 {
-                    case 1: config.AddJsonFile("appsettings.biostar.json", optional: false, reloadOnChange: true); break;
-                    case 2: config.AddJsonFile("appsettings.biotime.json", optional: false, reloadOnChange: true); break;
+                    case 1: case 2: config.AddJsonFile("appsettings.apibased.json", optional: false, reloadOnChange: true); break;
                     case 3: case 4: case 5: config.AddJsonFile("appsettings.database.json", optional: false, reloadOnChange: true); break;
+                    case 6: config.AddJsonFile("appsettings.zkteco.json", optional: false, reloadOnChange: true); break;
                     default:
                         throw new InvalidOperationException("Unsupported integration type");
                 }
@@ -86,6 +87,7 @@ internal class Program
                     case 3: services.AddScoped<IAttendanceConnector, MSSqlServerConnector>(); break;
                     case 4: services.AddScoped<IAttendanceConnector, PostgreSqlConnector>(); break;
                     case 5: services.AddScoped<IAttendanceConnector, MySQLConnector>(); break;
+                    case 6: services.AddScoped<IAttendanceConnector, ZkTecoConnector>(); break;
                     default:
                         throw new InvalidOperationException("Unsupported integration type");
                 }
