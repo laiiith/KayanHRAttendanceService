@@ -18,13 +18,15 @@ public class MySQLConnector(IOptions<IntegrationSettings> settingsOptions, ILogg
     {
         if (string.IsNullOrEmpty(_settings.Integration.FetchDataProcedure) || string.IsNullOrEmpty(_settings.Integration.ConnectionString))
         {
-            _logger.LogWarning("FetchDataProcedure or ConnectionString is Empty");
-            return [];
+            throw new InvalidOperationException("FetchDataProcedure or ConnectionString is Empty");
         }
 
         using var sqlConnection = await CreateDbConnection();
+
         var data = await sqlConnection.QueryAsync<AttendanceRecord>(_settings.Integration.FetchDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
+
         LogRecords(data);
+
         return NormalizeFunctionValues(data);
     }
 

@@ -19,14 +19,14 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settingsOptions,
     {
         if (string.IsNullOrEmpty(_settings.Integration.FetchDataProcedure) || string.IsNullOrEmpty(_settings.Integration.ConnectionString))
         {
-            _logger.LogWarning("FetchDataProcedure or ConnectionString is Empty");
-            return [];
+            throw new InvalidOperationException("FetchDataProcedure or ConnectionString is Empty");
         }
         using var dbConnection = await CreateDbConnection();
 
         var data = await dbConnection.QueryAsync<AttendanceRecord>(_settings.Integration.FetchDataProcedure, commandType: CommandType.StoredProcedure);
 
         LogRecords(data);
+
         return NormalizeFunctionValues(data);
     }
 
@@ -37,9 +37,9 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settingsOptions,
         return connection;
     }
 
-    protected override string GetDropTempTableSql() => "IF OBJECT_ID('tempdb..#TempTVP') IS NOT NULL DROP TABLE #TempTVP;";
+    protected override string GetDropTempTableSql() => "IF OBJECT_ID('tempdb..#Temp') IS NOT NULL DROP TABLE #Temp;";
 
-    protected override string GetCreateTempTableSql() => "CREATE TABLE #TempTVP(tid INT,flag INT DEFAULT 1);";
+    protected override string GetCreateTempTableSql() => "CREATE TABLE #Temp(TId NVARCHAR(150) NULL,Flag INT NOT NULL DEFAULT 1);";
 
     protected override string GetInsertTempTableSql() => "INSERT INTO #Temp (TId,Flag) VALUES (@tid,@flag)";
 }

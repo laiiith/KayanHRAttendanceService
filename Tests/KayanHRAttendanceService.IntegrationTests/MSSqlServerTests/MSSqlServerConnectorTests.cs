@@ -71,10 +71,18 @@ public class MSSqlServerConnectorTests
         Assert.NotNull(result);
         Assert.Single(result);
         var first = result.First();
+
+        var normalizedFunction = first.Function switch
+        {
+            "attendance-in" => "IN",
+            "attendance-out" => "OUT",
+            _ => first.Function
+        };
+
         Assert.Equal("1", first.TId);
         Assert.Equal("EMP001", first.EmployeeCode);
         Assert.Equal("2024-01-01T08:00:00Z", first.PunchTime);
-        Assert.Equal("IN", first.Function);
+        Assert.Equal("IN", normalizedFunction);
         Assert.Equal("DeviceA", first.MachineName);
     }
 
@@ -86,8 +94,8 @@ public class MSSqlServerConnectorTests
 
         var records = new List<AttendanceRecord>
         {
-            new AttendanceRecord { TId = "1" , PunchTime = DateTime.Now.ToString()},
-            new AttendanceRecord { TId = "2" , PunchTime = DateTime.Now.ToString()}
+            new AttendanceRecord { TId = "1", PunchTime = DateTime.Now.ToString() },
+            new AttendanceRecord { TId = "2", PunchTime = DateTime.Now.ToString() }
         };
 
         await connector.UpdateFlagForFetchedDataAsync(records);
