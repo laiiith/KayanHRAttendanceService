@@ -25,7 +25,7 @@ public class MySQLConnector(IOptions<IntegrationSettings> settingsOptions, ILogg
         using var sqlConnection = await CreateDbConnection();
         var data = await sqlConnection.QueryAsync<AttendanceRecord>(_settings.Integration.FetchDataProcedure, commandType: System.Data.CommandType.StoredProcedure);
         LogRecords(data);
-        return data.AsList();
+        return NormalizeFunctionValues(data);
     }
 
     protected override async Task<DbConnection> CreateDbConnection()
