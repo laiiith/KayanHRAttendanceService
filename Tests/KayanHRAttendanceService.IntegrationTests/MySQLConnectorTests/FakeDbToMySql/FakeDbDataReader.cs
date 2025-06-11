@@ -138,5 +138,4 @@ public class FakeDbDataReader : DbDataReader
         throw new NotImplementedException();
     }
 
-    // باقي الدوال يمكن تكملتها لاحقًا عند الحاجة
 }
