@@ -4,18 +4,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Data.Common;
 
-namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests
+namespace KayanHRAttendanceService.IntegrationTests.MSSqlServerTests;
+
+public class TestMSSqlServerConnector : MSSqlServerConnector
 {
-    public class TestMSSqlServerConnector : MSSqlServerConnector
+    private readonly DbConnection testConnection;
+
+    public TestMSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogger<MSSqlServerConnector> logger, DbConnection connection)
+        : base(settings, logger)
     {
-        private readonly DbConnection testConnection;
-
-        public TestMSSqlServerConnector(IOptions<IntegrationSettings> settings, ILogger<MSSqlServerConnector> logger, DbConnection connection)
-            : base(settings, logger)
-        {
-            testConnection = connection;
-        }
-
-        protected override Task<DbConnection> CreateDbConnection() => Task.FromResult(testConnection);
+        testConnection = connection;
     }
+
+    protected override Task<DbConnection> CreateDbConnection() => Task.FromResult(testConnection);
 }

@@ -11,7 +11,6 @@ public class IntegrationSettings
     public required bool DynamicDate { get; set; }
     public required FunctionMapping FunctionMapping { get; set; }
     public required Integration Integration { get; set; }
-    public required ZkTecoSettings ZkTecoSettings { get; set; }
 }
 
 public class FunctionMapping
