@@ -15,17 +15,27 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace KayanHRAttendanceService.WindowsService;
 
-internal class Program
+class Program
 {
+    #region Data
+    private static readonly string AppDataPath = Path.Combine(AppContext.BaseDirectory, "AppData");
+    private static readonly string DefaultLinuxDbFolder = "/var/lib/kayanhrattendanceservice/database";
+    private static readonly string WindowsDbFolder = Path.Combine(AppContext.BaseDirectory, "Database");
+    private static readonly string DatabasePath = GetDatabasePath();
+    private static readonly string DatabaseFile = Path.Combine(DatabasePath, "attendance.db");
+    #endregion Data
+
     public static async Task Main(string[] args)
     {
+        ConfigureLogger();
         try
         {
-            ConfigureLogger();
-
             var host = CreateHostBuilder(args).Build();
 
             ApplyPendingMigrations(host);
@@ -34,7 +44,7 @@ internal class Program
         }
         catch (Exception ex)
         {
-            Log.Error(ex, ex.Message);
+            Log.Fatal(ex, "Application terminated unexpectedly");
         }
         finally
         {
@@ -46,61 +56,106 @@ internal class Program
     {
         return Host.CreateDefaultBuilder(args)
             .UseSerilog()
-            .ConfigureAppConfiguration((context, config) =>
+            .ConfigureAppConfiguration(ConfigureAppSettings)
+            .ConfigureServices(ConfigureServices)
+            .UsePlatformSpecificHosting();
+    }
+
+    private static void ConfigureAppSettings(HostBuilderContext context, IConfigurationBuilder config)
+    {
+        config.SetBasePath(AppDataPath);
+        config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+        var tempConfig = config.Build();
+        int typeID = tempConfig.GetSection("Settings").Get<IntegrationSettings>()?.Type ?? 0;
+
+        string integrationSettingsFile = typeID switch
+        {
+            1 => "appsettings.biostar.json",
+            2 => "appsettings.biotime.json",
+            3 or 4 or 5 => "appsettings.database.json",
+            6 => "appsettings.keytech.json",
+            _ => throw new InvalidOperationException("Unsupported integration type")
+        };
+
+        config.AddJsonFile(integrationSettingsFile, optional: false, reloadOnChange: true);
+    }
+
+    private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
+    {
+        var config = context.Configuration;
+        var integrationSettings = config.GetSection("Settings").Get<IntegrationSettings>();
+        int typeID = integrationSettings?.Type ?? 0;
+
+        EnsureDatabaseFolderExists();
+
+        services.Configure<IntegrationSettings>(config.GetSection("Settings"));
+
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlite($"Data Source={DatabaseFile}"));
+
+        RegisterAttendanceConnector(services, typeID);
+
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IAttendanceFetcherService, AttendanceFetcherService>();
+        services.AddScoped<IDataPusherService, DataPusherService>();
+        services.AddScoped<ISyncAttendanceData, SyncAttendanceData>();
+        services.AddScoped<IKayanConnectorService, KayanConnectorService>();
+        services.AddScoped<IHttpService, HttpService>();
+
+        services.AddHostedService<AttendanceWorker>();
+        services.AddHttpClient();
+    }
+
+    private static void RegisterAttendanceConnector(IServiceCollection services, int typeID)
+    {
+        switch (typeID)
+        {
+            case 1: services.AddScoped<IAttendanceConnector, BioStarConnector>(); break;
+            case 2: services.AddScoped<IAttendanceConnector, BioTimeConnector>(); break;
+            case 3: services.AddScoped<IAttendanceConnector, MSSqlServerConnector>(); break;
+            case 4: services.AddScoped<IAttendanceConnector, PostgreSqlConnector>(); break;
+            case 5: services.AddScoped<IAttendanceConnector, MySQLConnector>(); break;
+            case 6: services.AddScoped<IAttendanceConnector, KeyTechConnector>(); break;
+            default:
+                throw new InvalidOperationException("Unsupported integration type");
+        }
+    }
+
+    private static void EnsureDatabaseFolderExists()
+    {
+        if (!Directory.Exists(DatabasePath))
+        {
+            Directory.CreateDirectory(DatabasePath);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var basePath = Path.Combine(AppContext.BaseDirectory, "AppData");
-                config.SetBasePath(basePath);
+                var directoryInfo = new DirectoryInfo(DatabasePath);
+                var directorySecurity = directoryInfo.GetAccessControl();
 
-                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
-                var tempConfig = config.Build();
-                var typeID = tempConfig.GetSection("Settings").Get<IntegrationSettings>()?.Type ?? 0;
-
-                switch (typeID)
+                var currentUser = WindowsIdentity.GetCurrent().User;
+                if (currentUser != null)
                 {
-                    case 1: config.AddJsonFile("appsettings.biostar.json", optional: false, reloadOnChange: true); break;
-                    case 2: config.AddJsonFile("appsettings.biotime.json", optional: false, reloadOnChange: true); break;
-                    case 3: case 4: case 5: config.AddJsonFile("appsettings.database.json", optional: false, reloadOnChange: true); break;
-                    case 6: config.AddJsonFile("appsettings.keytech.json", optional: false, reloadOnChange: true); break;
-                    default:
-                        throw new InvalidOperationException("Unsupported integration type");
+                    directorySecurity.AddAccessRule(new FileSystemAccessRule(
+                        currentUser,
+                        FileSystemRights.FullControl,
+                        InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+                        PropagationFlags.None,
+                        AccessControlType.Allow));
+
+                    directoryInfo.SetAccessControl(directorySecurity);
                 }
-            })
-            .ConfigureServices((context, services) =>
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                var config = context.Configuration;
-
-                services.Configure<IntegrationSettings>(config.GetSection("Settings"));
-                var typeID = config.GetSection("Settings").Get<IntegrationSettings>().Type;
-
-                var dbDirectory = Path.Combine(AppContext.BaseDirectory, "Database");
-                if (!Directory.Exists(dbDirectory))
-                {
-                    Directory.CreateDirectory(dbDirectory);
-                }
-                services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite("Data Source=Database/attendance.db"));
-
-                switch (typeID)
-                {
-                    case 1: services.AddScoped<IAttendanceConnector, BioStarConnector>(); break;
-                    case 2: services.AddScoped<IAttendanceConnector, BioTimeConnector>(); break;
-                    case 3: services.AddScoped<IAttendanceConnector, MSSqlServerConnector>(); break;
-                    case 4: services.AddScoped<IAttendanceConnector, PostgreSqlConnector>(); break;
-                    case 5: services.AddScoped<IAttendanceConnector, MySQLConnector>(); break;
-                    case 6: services.AddScoped<IAttendanceConnector, KeyTechConnector>(); break;
-                    default:
-                        throw new InvalidOperationException("Unsupported integration type");
-                }
-
-                services.AddScoped<IUnitOfWork, UnitOfWork>();
-                services.AddScoped<IAttendanceFetcherService, AttendanceFetcherService>();
-                services.AddScoped<IDataPusherService, DataPusherService>();
-                services.AddScoped<ISyncAttendanceData, SyncAttendanceData>();
-                services.AddScoped<IKayanConnectorService, KayanConnectorService>();
-                services.AddScoped<IHttpService, HttpService>();
-                services.AddHostedService<AttendanceWorker>();
-                services.AddHttpClient();
-            });
+                var dirInfo = new System.IO.DirectoryInfo(DatabasePath);
+                dirInfo.Attributes &= ~System.IO.FileAttributes.ReadOnly;
+            }
+            else
+            {
+                throw new PlatformNotSupportedException("This service can only run on Windows or Linux.");
+            }
+        }
     }
 
     private static void ApplyPendingMigrations(IHost host)
@@ -128,5 +183,36 @@ internal class Program
 
         Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config)
             .Enrich.FromLogContext().CreateLogger();
+    }
+
+    private static string GetDatabasePath()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return WindowsDbFolder;
+        }
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return DefaultLinuxDbFolder;
+        }
+
+        throw new PlatformNotSupportedException("This service can only run on Windows or Linux.");
+    }
+}
+
+static class HostBuilderExtensions
+{
+    public static IHostBuilder UsePlatformSpecificHosting(this IHostBuilder builder)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return builder.UseWindowsService();
+        }
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return builder.UseSystemd();
+        }
+        throw new PlatformNotSupportedException("This service can only run on Windows or Linux.");
     }
 }
