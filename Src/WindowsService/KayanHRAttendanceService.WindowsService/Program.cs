@@ -85,6 +85,7 @@ internal class Program
                     case 3: services.AddScoped<IAttendanceConnector, MSSqlServerConnector>(); break;
                     case 4: services.AddScoped<IAttendanceConnector, PostgreSqlConnector>(); break;
                     case 5: services.AddScoped<IAttendanceConnector, MySQLConnector>(); break;
+                    case 6: services.AddScoped<IAttendanceConnector, KeyTechConnector>(); break;
                     default:
                         throw new InvalidOperationException("Unsupported integration type");
                 }
