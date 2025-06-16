@@ -58,8 +58,10 @@ internal class Program
 
                 switch (typeID)
                 {
-                    case 1: case 2: config.AddJsonFile("appsettings.apibased.json", optional: false, reloadOnChange: true); break;
+                    case 1: config.AddJsonFile("appsettings.biostar.json", optional: false, reloadOnChange: true); break;
+                    case 2: config.AddJsonFile("appsettings.biotime.json", optional: false, reloadOnChange: true); break;
                     case 3: case 4: case 5: config.AddJsonFile("appsettings.database.json", optional: false, reloadOnChange: true); break;
+                    case 6: config.AddJsonFile("appsettings.keytech.json", optional: false, reloadOnChange: true); break;
                     default:
                         throw new InvalidOperationException("Unsupported integration type");
                 }
