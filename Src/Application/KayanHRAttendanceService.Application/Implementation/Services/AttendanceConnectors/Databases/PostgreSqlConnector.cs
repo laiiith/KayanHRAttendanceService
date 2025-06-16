@@ -42,6 +42,9 @@ public class PostgreSqlConnector(IOptions<IntegrationSettings> settingsOptions, 
     protected override string GetCreateTempTableSql()
         => "CREATE TEMP TABLE Temp (TId VARCHAR, Flag INT DEFAULT 1) ON COMMIT DROP";
 
+    protected override string GetInsertTempTableSql()
+        => "INSERT INTO Temp(TId,Flag) VALUES (@TId,@flag)";
+
     private string GetFetchQuery
         => $"SELECT * FROM {_settings.Integration.FetchDataProcedure}()";
 }

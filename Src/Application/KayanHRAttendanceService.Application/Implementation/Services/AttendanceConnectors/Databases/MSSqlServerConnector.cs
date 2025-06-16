@@ -13,7 +13,6 @@ namespace KayanHRAttendanceService.Application.Implementation.Services.Attendanc
 public class MSSqlServerConnector(IOptions<IntegrationSettings> settingsOptions, ILogger<MSSqlServerConnector> logger) : DatabaseAttendanceConnector<MSSqlServerConnector>(settingsOptions, logger), IDbAttendanceConnector
 {
     private readonly IntegrationSettings _settings = settingsOptions.Value;
-    private readonly ILogger<MSSqlServerConnector> _logger = logger;
 
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
@@ -37,9 +36,12 @@ public class MSSqlServerConnector(IOptions<IntegrationSettings> settingsOptions,
         return connection;
     }
 
-    protected override string GetDropTempTableSql() => "IF OBJECT_ID('tempdb..#Temp') IS NOT NULL DROP TABLE #Temp;";
+    protected override string GetDropTempTableSql()
+        => "IF OBJECT_ID('tempdb..#Temp') IS NOT NULL DROP TABLE #Temp;";
 
-    protected override string GetCreateTempTableSql() => "CREATE TABLE #Temp(TId NVARCHAR(150) NULL,Flag INT NOT NULL DEFAULT 1);";
+    protected override string GetCreateTempTableSql()
+        => "CREATE TABLE #Temp(TId NVARCHAR(150) NULL,Flag INT NOT NULL DEFAULT 1);";
 
-    protected override string GetInsertTempTableSql() => "INSERT INTO #Temp (TId,Flag) VALUES (@tid,@flag)";
+    protected override string GetInsertTempTableSql()
+        => "INSERT INTO #Temp (TId,Flag) VALUES (@tid,@flag)";
 }

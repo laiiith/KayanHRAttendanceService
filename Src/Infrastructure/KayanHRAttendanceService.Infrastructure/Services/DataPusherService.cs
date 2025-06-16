@@ -17,7 +17,6 @@ public class DataPusherService(IAttendanceConnector attendanceConnector, IUnitOf
     private readonly IntegrationSettings _settings = settingsOptions.Value;
     private static readonly string[] _excludedStatuses = { "2", "3", "401", "403", "500" };
 
-
     public async Task PushAsync()
     {
         _logger.LogInformation("Starting attendance data push to KayanHR...");
@@ -37,7 +36,6 @@ public class DataPusherService(IAttendanceConnector attendanceConnector, IUnitOf
 
             var (isSuccess, responseStatusId) = await _kayanConnectorService
                 .PushToKayanConnectorEndPoint(pendingRecords);
-
 
             var statusId = responseStatusId != 200
                           ? 0

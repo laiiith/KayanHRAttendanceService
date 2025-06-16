@@ -1,7 +1,6 @@
 ﻿using KayanHRAttendanceService.Application.Implementation.Services;
 using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ApiBased;
 using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
-using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.ZkTeco;
 using KayanHRAttendanceService.Application.Interfaces;
 using KayanHRAttendanceService.Application.Interfaces.Data;
 using KayanHRAttendanceService.Application.Interfaces.Services;

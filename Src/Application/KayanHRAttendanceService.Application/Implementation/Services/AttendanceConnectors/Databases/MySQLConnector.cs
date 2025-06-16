@@ -12,7 +12,6 @@ namespace KayanHRAttendanceService.Application.Implementation.Services.Attendanc
 public class MySQLConnector(IOptions<IntegrationSettings> settingsOptions, ILogger<MySQLConnector> logger) : DatabaseAttendanceConnector<MySQLConnector>(settingsOptions, logger), IDbAttendanceConnector
 {
     private readonly IntegrationSettings _settings = settingsOptions.Value;
-    private readonly ILogger<MySQLConnector> _logger = logger;
 
     public async Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
@@ -36,4 +35,13 @@ public class MySQLConnector(IOptions<IntegrationSettings> settingsOptions, ILogg
         await sqlConnection.OpenAsync();
         return sqlConnection;
     }
+
+    protected override string GetCreateTempTableSql()
+        => "CREATE TEMPORARY TABLE Temp(TId VARCHAR(150),flag INT DEFAULT (1))";
+
+    protected override string GetInsertTempTableSql()
+        => "INSERT INTO Temp(TId,Flag) VALUES (@TId,@flag)";
+
+    protected override string GetDropTempTableSql()
+        => "DROP TEMPORARY TABLE IF EXISTS Temp";
 }

@@ -12,30 +12,6 @@ public abstract class DatabaseAttendanceConnector<T>(IOptions<IntegrationSetting
 {
     private readonly IntegrationSettings _settings = settingsOptions.Value;
 
-    protected abstract Task<DbConnection> CreateDbConnection();
-
-    protected void LogRecords(IEnumerable<AttendanceRecord> attendanceRecords)
-    {
-        foreach (var record in attendanceRecords)
-        {
-            Console.WriteLine($"Fetched Punch: {record.TId}");
-            logger.LogInformation("Fetched attendance record with TID: {TId}", record.TId);
-        }
-    }
-
-    protected List<AttendanceRecord> NormalizeFunctionValues(IEnumerable<AttendanceRecord> records)
-    => [.. records.Select(x => new AttendanceRecord
-    {
-        TId = x.TId,
-        EmployeeCode = x.EmployeeCode,
-        Function = MapFunction(x.Function),
-        ID = x.ID,
-        MachineName = x.MachineName,
-        MachineSerialNo = x.MachineSerialNo,
-        Status = x.Status,
-        PunchTime = x.PunchTime,
-    })];
-
     public async Task UpdateFlagForFetchedDataAsync(List<AttendanceRecord> records, int statusID = 1)
     {
         if (records == null || records.Count == 0)
@@ -74,9 +50,33 @@ public abstract class DatabaseAttendanceConnector<T>(IOptions<IntegrationSetting
         }
     }
 
-    protected virtual string GetCreateTempTableSql() => "CREATE TEMPORARY TABLE Temp(TId VARCHAR(150),flag INT DEFAULT (1))";
+    protected void LogRecords(IEnumerable<AttendanceRecord> attendanceRecords)
+    {
+        foreach (var record in attendanceRecords)
+        {
+            Console.WriteLine($"Fetched Punch: {record.TId}");
+            logger.LogInformation("Fetched attendance record with TID: {TId}", record.TId);
+        }
+    }
 
-    protected virtual string GetInsertTempTableSql() => "INSERT INTO Temp(TId,Flag) VALUES (@TId,@flag)";
+    protected List<AttendanceRecord> NormalizeFunctionValues(IEnumerable<AttendanceRecord> records)
+    => [.. records.Select(x => new AttendanceRecord
+    {
+        TId = x.TId,
+        EmployeeCode = x.EmployeeCode,
+        Function = MapFunction(x.Function),
+        ID = x.ID,
+        MachineName = x.MachineName,
+        MachineSerialNo = x.MachineSerialNo,
+        Status = x.Status,
+        PunchTime = x.PunchTime,
+    })];
 
-    protected virtual string GetDropTempTableSql() => "DROP TEMPORARY TABLE IF EXISTS Temp";
+    protected abstract Task<DbConnection> CreateDbConnection();
+
+    protected abstract string GetCreateTempTableSql();
+
+    protected abstract string GetInsertTempTableSql();
+
+    protected abstract string GetDropTempTableSql();
 }

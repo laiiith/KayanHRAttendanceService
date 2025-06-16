@@ -91,7 +91,7 @@ public class MySQLConnectorUnitTests
             Integration = new Integration
             {
                 FetchDataProcedure = """
-            SELECT 
+            SELECT
                 TID AS TId,
                 EmployeeCardNumber AS EmployeeCode,
                 AttendanceDate AS PunchTime,
@@ -103,7 +103,6 @@ public class MySQLConnectorUnitTests
                 ConnectionString = "Fake"
             }
         });
-
 
         var logger = new LoggerFactory().CreateLogger<MySQLConnector>();
         var connector = new SQLiteTestConnector(settings, logger, connection);
