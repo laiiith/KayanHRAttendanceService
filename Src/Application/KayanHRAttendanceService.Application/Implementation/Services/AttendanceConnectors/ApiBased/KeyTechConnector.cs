@@ -17,7 +17,7 @@ public class KeyTechConnector(IHttpService httpService, IUnitOfWork unitOfWork, 
 
     public Task<List<AttendanceRecord>> FetchAttendanceDataAsync()
     {
-        logger.LogInformation("Fetching attendance data from KeyTech from {Start} to {End}", _settings.Integration.StartDate, _settings.Integration.EndDate);
+        _logger.LogInformation("Fetching attendance data from KeyTech from {Start} to {End}", _settings.Integration.StartDate, _settings.Integration.EndDate);
 
         throw new NotImplementedException();
     }
