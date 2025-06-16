@@ -36,4 +36,6 @@ public class Integration
     public string? EndDate { get; set; }
     public string? UpdateDataProcedure { get; set; }
     public string? FetchDataProcedure { get; set; }
+    public string? EntityId { get; set; }
+    public string? Token { get; set; }
 }
