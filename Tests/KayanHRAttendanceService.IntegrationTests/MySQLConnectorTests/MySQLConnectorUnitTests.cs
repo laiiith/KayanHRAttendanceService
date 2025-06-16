@@ -1,82 +1,33 @@
-﻿using Dapper;
+﻿using System.Data.Common;
 using KayanHRAttendanceService.Application.Implementation.Services.AttendanceConnectors.Databases;
 using KayanHRAttendanceService.Domain.Entities.General;
 using KayanHRAttendanceService.Domain.Entities.Sqlite;
-using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Data.Common;
+using Moq;
 
 namespace KayanHRAttendanceService.IntegrationTests.MySQLConnectorTests;
 
-public class MySQLConnectorUnitTests
+public class MySQLConnectorTests
 {
-    private class SQLiteTestConnector : MySQLConnector
+    private readonly Mock<IOptions<IntegrationSettings>> _mockOptions;
+    private readonly Mock<ILogger<MySQLConnector>> _mockLogger;
+    private readonly TestMySQLConnector _connector;
+
+    public MySQLConnectorTests()
     {
-        private readonly DbConnection _connection;
-        private readonly IOptions<IntegrationSettings> _settings;
+        _mockOptions = new Mock<IOptions<IntegrationSettings>>();
+        _mockLogger = new Mock<ILogger<MySQLConnector>>();
 
-        public SQLiteTestConnector(IOptions<IntegrationSettings> settings, ILogger<MySQLConnector> logger, DbConnection connection)
-            : base(settings, logger)
-        {
-            _connection = connection;
-            _settings = settings;
-        }
-
-        protected override Task<DbConnection> CreateDbConnection()
-        {
-            return Task.FromResult(_connection);
-        }
-
-        public async Task<List<AttendanceRecord>> FetchAttendanceDataForTestAsync()
-        {
-            using var sqlConnection = await CreateDbConnection();
-            var data = await sqlConnection.QueryAsync<AttendanceRecord>(
-                _settings.Value.Integration.FetchDataProcedure,
-                commandType: System.Data.CommandType.Text);
-
-            return data.AsList();
-        }
-    }
-
-    [Fact]
-    public async Task FetchAttendanceDataAsync_ShouldReturnMappedRecords_MockMySQLStructure()
-    {
-        var connection = new SqliteConnection("Data Source=:memory:");
-        await connection.OpenAsync();
-
-        var createTableCmd = connection.CreateCommand();
-        createTableCmd.CommandText = """
-            CREATE TABLE KayanAttendance (
-                TID INTEGER PRIMARY KEY,
-                EmployeeCardNumber TEXT,
-                AttendanceDate TEXT,
-                FunctionType TEXT,
-                MachineName TEXT,
-                Flag INTEGER DEFAULT 0
-            );
-        """;
-        await createTableCmd.ExecuteNonQueryAsync();
-
-        var insertCmd = connection.CreateCommand();
-        insertCmd.CommandText = """
-            INSERT INTO KayanAttendance (TID, EmployeeCardNumber, AttendanceDate, FunctionType, MachineName)
-            VALUES
-            (1, 'EMP001', '2025-06-04 08:01:00', 'CheckIn', 'Machine_A'),
-            (2, 'EMP001', '2025-06-04 17:00:00', 'CheckOut', 'Machine_A'),
-            (3, 'EMP002', '2025-06-04 08:05:00', 'CheckIn', 'Machine_B');
-        """;
-        await insertCmd.ExecuteNonQueryAsync();
-
-        var settings = Options.Create(new IntegrationSettings
+        var integrationSettings = new IntegrationSettings
         {
             Type = 1,
-            Interval = 5,
-            APIBulkEndpoint = "https://fake.api/endpoint",
-            ClientID = "fake-client-id",
-            ClientSecret = "fake-client-secret",
-            BatchSize = 100,
-            DynamicDate = false,
+            APIBulkEndpoint = "",
+            BatchSize = 1,
+            ClientID = "",
+            ClientSecret = "",
+            DynamicDate = true,
+            Interval = 1,
             FunctionMapping = new FunctionMapping
             {
                 AttendanceIn = "CheckIn",
@@ -90,28 +41,96 @@ public class MySQLConnectorUnitTests
             },
             Integration = new Integration
             {
-                FetchDataProcedure = """
-            SELECT
-                TID AS TId,
-                EmployeeCardNumber AS EmployeeCode,
-                AttendanceDate AS PunchTime,
-                FunctionType AS `Function`,
-                MachineName
-            FROM KayanAttendance
-        """,
-                UpdateDataProcedure = "NOT_USED_IN_TEST",
-                ConnectionString = "Fake"
+                ConnectionString = "FakeConnectionString",
+                FetchDataProcedure = "SELECT * FROM KayanAttendance",
+                UpdateDataProcedure = ""
             }
-        });
+        };
 
-        var logger = new LoggerFactory().CreateLogger<MySQLConnector>();
-        var connector = new SQLiteTestConnector(settings, logger, connection);
+        _mockOptions.Setup(x => x.Value).Returns(integrationSettings);
 
-        var result = await connector.FetchAttendanceDataForTestAsync();
+        _connector = new TestMySQLConnector(_mockOptions.Object, _mockLogger.Object);
+    }
+    [Fact]
+    public async Task FetchAttendanceDataAsync_ShouldHandleNullValuesGracefully()
+    {
+        var records = new List<AttendanceRecord>
+    {
+        new AttendanceRecord
+        {
+            TId = null, EmployeeCode = null, Function = null, PunchTime = null, MachineName = null
+        }
+    };
+
+        _connector.SetMockQueryResult(records);
+        var result = await _connector.FetchAttendanceDataAsync();
+
+        Assert.Single(result);
+        Assert.Null(result[0].TId);
+        Assert.Null(result[0].EmployeeCode);
+    }
+
+    [Fact]
+    public async Task FetchAttendanceDataAsync_ReturnsMockedData()
+    {
+        var expectedData = new List<AttendanceRecord>
+        {
+            new AttendanceRecord { TId = "1", EmployeeCode = "EMP001", Function = "CheckIn", PunchTime = "2025-06-04 08:01:00" },
+            new AttendanceRecord { TId = "2", EmployeeCode = "EMP001", Function = "CheckOut", PunchTime = "2025-06-04 17:00:00" }
+        };
+
+        _connector.SetMockQueryResult(expectedData);
+
+        var result = await _connector.FetchAttendanceDataAsync();
 
         Assert.NotNull(result);
-        Assert.Equal(3, result.Count);
+        Assert.Equal(2, result.Count);
         Assert.Equal("EMP001", result[0].EmployeeCode);
-        Assert.Equal("CheckIn", result[0].Function);
+        Assert.Equal("attendance-in", result[0].Function);
+        Assert.Equal("EMP001", result[1].EmployeeCode);
+        Assert.Equal("attendance-out", result[1].Function);
+    }
+
+    [Fact]
+    public async Task FetchAttendanceDataAsync_ShouldThrowException_WhenSettingsAreInvalid()
+    {
+        var settings = new IntegrationSettings
+        {
+            Integration = new Integration
+            {
+                ConnectionString = "",
+                FetchDataProcedure = ""
+            }
+        };
+
+        var mockOptions = new Mock<IOptions<IntegrationSettings>>();
+        mockOptions.Setup(x => x.Value).Returns(settings);
+
+        var logger = new Mock<ILogger<MySQLConnector>>();
+        var connector = new MySQLConnector(mockOptions.Object, logger.Object);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => connector.FetchAttendanceDataAsync());
+        Assert.Equal("FetchDataProcedure or ConnectionString is Empty", exception.Message);
+    }
+
+
+    private class TestMySQLConnector : MySQLConnector
+    {
+        private IEnumerable<AttendanceRecord> _mockQueryResult = new List<AttendanceRecord>();
+
+        public TestMySQLConnector(IOptions<IntegrationSettings> settings, ILogger<MySQLConnector> logger)
+            : base(settings, logger)
+        {
+        }
+
+        public void SetMockQueryResult(IEnumerable<AttendanceRecord> data)
+        {
+            _mockQueryResult = data;
+        }
+
+        protected override Task<DbConnection> CreateDbConnection()
+        {
+            return Task.FromResult<DbConnection>(new KayanHRAttendanceService.IntegrationTests.MySQLConnectorTests.FakeDbToMySql.FakeDbConnection(_mockQueryResult));
+        }
     }
 }
