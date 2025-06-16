@@ -2,39 +2,38 @@
 using System.Data;
 using System.Data.Common;
 
-namespace KayanHRAttendanceService.IntegrationTests.PostgreSqlConnectorTests.FakeDbToPostgreSql
+namespace KayanHRAttendanceService.IntegrationTests.ZkTecoConnectorTests.FakeDbToPostgreSql;
+
+public class FakeDbConnection : DbConnection
 {
-    public class FakeDbConnection : DbConnection
+    private readonly IEnumerable<AttendanceRecord> _data;
+    private ConnectionState _state = ConnectionState.Closed;
+
+    public FakeDbConnection(IEnumerable<AttendanceRecord> data)
     {
-        private readonly IEnumerable<AttendanceRecord> _data;
-        private ConnectionState _state = ConnectionState.Closed;
+        _data = data;
+    }
 
-        public FakeDbConnection(IEnumerable<AttendanceRecord> data)
-        {
-            _data = data;
-        }
+    public override string ConnectionString { get; set; }
+    public override string Database => "FakeDb";
+    public override string DataSource => "FakeDataSource";
+    public override string ServerVersion => "1.0";
+    public override ConnectionState State => _state;
 
-        public override string ConnectionString { get; set; }
-        public override string Database => "FakeDb";
-        public override string DataSource => "FakeDataSource";
-        public override string ServerVersion => "1.0";
-        public override ConnectionState State => _state;
+    public override void ChangeDatabase(string databaseName)
+    { }
 
-        public override void ChangeDatabase(string databaseName)
-        { }
+    public override void Close() => _state = ConnectionState.Closed;
 
-        public override void Close() => _state = ConnectionState.Closed;
+    public override void Open() => _state = ConnectionState.Open;
 
-        public override void Open() => _state = ConnectionState.Open;
+    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
+    {
+        throw new NotImplementedException();
+    }
 
-        protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override DbCommand CreateDbCommand()
-        {
-            return new FakeDbCommand(_data, this);
-        }
+    protected override DbCommand CreateDbCommand()
+    {
+        return new FakeDbCommand(_data, this);
     }
 }

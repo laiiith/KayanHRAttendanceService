@@ -87,7 +87,7 @@ public class PostgreSqlConnectorTests
 
         protected override Task<DbConnection> CreateDbConnection()
         {
-            return Task.FromResult<DbConnection>(result: new KayanHRAttendanceService.IntegrationTests.PostgreSqlConnectorTests.FakeDbToPostgreSql.FakeDbConnection(_mockQueryResult));
+            return Task.FromResult<DbConnection>(result: new ZkTecoConnectorTests.FakeDbToPostgreSql.FakeDbConnection(_mockQueryResult));
         }
     }
 }
