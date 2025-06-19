@@ -2,11 +2,7 @@
 <h3 align="center">A passionate full-stack developer from Jordan</h3>
 
 <ul>
-  <li>🔭 I’m currently working on <strong>KayanHrKayanHRAttendanceService</strong></li>
-  <ul>
-    <li>PostgreSQL, MySQL, MS SQL Server Integration</li>
-    <li>Backend Functions, Stored Procedures, Attendance System</li>
-  </ul>
+  <li>🔭 I’m currently working on <strong>KayanHr</strong></li>
   <li>👯 I’m looking to collaborate on <strong>full-stack and database-intensive applications</strong></li>
   <li>🤝 I’m looking for help with <strong>DevOps and real-time systems integration</strong></li>
   <li>🌱 I’m currently learning <strong>.NET Core MVC, Entity Framework, PostgreSQL, and DevOps tools</strong></li>
