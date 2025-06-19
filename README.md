@@ -11,7 +11,6 @@
   <li>🤝 I’m looking for help with <strong>DevOps and real-time systems integration</strong></li>
   <li>🌱 I’m currently learning <strong>.NET Core MVC, Entity Framework, PostgreSQL, and DevOps tools</strong></li>
   <li>💬 Ask me about <strong>C#, SQL, ASP.NET Core, and PostgreSQL triggers/functions</strong></li>
-  <li>📫 How to reach me: <strong>mohannadsroor181@gmail.com</strong></li>
   <li>⚡ Fun fact: I used to be a carpenter before becoming a developer!</li>
 </ul>
 
