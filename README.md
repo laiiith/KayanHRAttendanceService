@@ -1,7 +1,3 @@
-
-
-<hr/>
-
 <h2>📦 KayanAttendance DB Setup Scripts</h2>
 <p>The following scripts are used to create and initialize the <code>KayanAttendance</code> database across <strong>MS SQL Server</strong>, <strong>MySQL</strong>, and <strong>PostgreSQL</strong> environments.</p>
 
