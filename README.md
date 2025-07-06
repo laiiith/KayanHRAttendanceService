@@ -1,14 +1,4 @@
-<h1 align="center">Hi 👋, I'm Laith</h1>
-<h3 align="center">A passionate full-stack developer from Jordan</h3>
 
-<ul>
-  <li>🔭 I’m currently working on <strong>KayanHr</strong></li>
-  <li>👯 I’m looking to collaborate on <strong>full-stack and database-intensive applications</strong></li>
-  <li>🤝 I’m looking for help with <strong>DevOps and real-time systems integration</strong></li>
-  <li>🌱 I’m currently learning <strong>.NET Core MVC, Entity Framework, PostgreSQL, and DevOps tools</strong></li>
-  <li>💬 Ask me about <strong>C#, SQL, ASP.NET Core, and PostgreSQL triggers/functions</strong></li>
-  <li>⚡ Fun fact: I used to be a carpenter before becoming a developer!</li>
-</ul>
 
 <hr/>
 
